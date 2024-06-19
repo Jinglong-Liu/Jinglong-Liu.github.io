@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>虚拟机与环境搭建 | Hexo</title><meta name="author" content="John Doe"><meta name="copyright" content="John Doe"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="镜像：阿里云-文档与社区-工具与资源-镜像站centos 镜像站：https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;centos&#x2F; 虚拟机本地安装无数次安装虚拟机，每次都要搜，搜出来都是复制粘贴的，服了 centos71、镜像下载与安装装个minimal得了，反正都是连接ssh的，没人使用图形界面https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;centos&#x2F;7.9.2009&#x2F;isos&#x2F;x">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟机与环境搭建">
+<meta property="og:url" content="http://example.com/2024/06/14/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="镜像：阿里云-文档与社区-工具与资源-镜像站centos 镜像站：https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;centos&#x2F; 虚拟机本地安装无数次安装虚拟机，每次都要搜，搜出来都是复制粘贴的，服了 centos71、镜像下载与安装装个minimal得了，反正都是连接ssh的，没人使用图形界面https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;centos&#x2F;7.9.2009&#x2F;isos&#x2F;x">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2024-06-14T01:39:03.000Z">
+<meta property="article:modified_time" content="2024-06-14T06:43:49.428Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="配置环境">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2024/06/14/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.14.0-b2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>(()=>{
+      const saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+      
+      window.btf = {
+        saveToLocal: saveToLocal,
+        getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = url
+          script.async = true
+          script.onerror = reject
+          script.onload = script.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            script.onload = script.onreadystatechange = null
+            resolve()
+          }
+
+          Object.keys(attr).forEach(key => {
+            script.setAttribute(key, attr[key])
+          })
+
+          document.head.appendChild(script)
+        }),
+
+        getCSS: (url, id = false) => new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          if (id) link.id = id
+          link.onerror = reject
+          link.onload = link.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            link.onload = link.onreadystatechange = null
+            resolve()
+          }
+          document.head.appendChild(link)
+        }),
+
+        addGlobalFn: (key, fn, name = false, parent = window) => {
+          const pjaxEnable = false
+          if (!pjaxEnable && key.startsWith('pjax')) return
+
+          const globalFn = parent.globalFn || {}
+          const keyObj = globalFn[key] || {}
+    
+          if (name && keyObj[name]) return
+    
+          name = name || Object.keys(keyObj).length
+          keyObj[name] = fn
+          globalFn[key] = keyObj
+          parent.globalFn = globalFn
+        }
+      }
+    
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+      
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })()</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '虚拟机与环境搭建',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-06-14 14:43:49'
+}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">虚拟机与环境搭建</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-06-14T01:39:03.000Z" title="发表于 2024-06-14 09:39:03">2024-06-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-06-14T06:43:49.428Z" title="更新于 2024-06-14 14:43:49">2024-06-14</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="虚拟机与环境搭建"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>镜像：阿里云-文档与社区-工具与资源-镜像站<br>centos 镜像站：<a target="_blank" rel="noopener" href="https://mirrors.aliyun.com/centos/">https://mirrors.aliyun.com/centos/</a></p>
+<h2 id="虚拟机本地安装"><a href="#虚拟机本地安装" class="headerlink" title="虚拟机本地安装"></a>虚拟机本地安装</h2><p>无数次安装虚拟机，每次都要搜，搜出来都是复制粘贴的，服了</p>
+<h3 id="centos7"><a href="#centos7" class="headerlink" title="centos7"></a>centos7</h3><p>1、镜像下载与安装<br>装个minimal得了，反正都是连接ssh的，没人使用图形界面<br><a target="_blank" rel="noopener" href="https://mirrors.aliyun.com/centos/7.9.2009/isos/x86_64/CentOS-7-x86_64-Minimal-2009.iso">https://mirrors.aliyun.com/centos/7.9.2009/isos/x86_64/CentOS-7-x86_64-Minimal-2009.iso</a></p>
+<p>root<br>123456</p>
+<p>admin<br>123456</p>
+<h3 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/gaohq/p/15582966.html">https://www.cnblogs.com/gaohq/p/15582966.html</a></p>
+<p>sudo yum update<br>sudo yum -y install net-tools</p>
+<p>NAT：内部可以访问外部，外部不能访问虚拟机<br>桥接网卡：与主机属于同一段网络，可以被宿主机以及局域网内其他网络访问<br>Host-Only：虚拟机可以被宿主机访问，虚拟机不可以访问外网</p>
+<p>可以使用NAT + Host-Only或桥接网卡<br>推荐使用桥接模式</p>
+<p>vi &#x2F;etc&#x2F;sysconfig&#x2F;network-scripts&#x2F;ifcfg-enp0s3<br>ONBOOT&#x3D;yes<br>想要每次启动，ip相同：</p>
+<p>xxx is not in the sudoers file</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">解决方案</span><br><span class="line"><span class="comment">#切换到root用户</span></span><br><span class="line">su</span><br><span class="line"><span class="comment">#编辑配置文件</span></span><br><span class="line">vim /etc/sudoers</span><br><span class="line"><span class="comment">#增加配置, 在打开的配置文件中，找到root ALL=(ALL) ALL, 在下面添加一行</span></span><br><span class="line"><span class="comment">#其中xxx是你要加入的用户名称</span></span><br><span class="line">xxx ALL=(ALL) ALL</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> noreadonly</span><br><span class="line">wq</span><br></pre></td></tr></table></figure>
+
+<h3 id="设置静态IP"><a href="#设置静态IP" class="headerlink" title="设置静态IP"></a>设置静态IP</h3><p>编辑 vi &#x2F;etc&#x2F;sysconfig&#x2F;network-scripts&#x2F;ifcfg-enp0s3</p>
+<p>ONBOOT由no设置为yes<br>添加自己自定义的ip<br>设置子网掩码<br>设置网关<br>BOOTPROTO 设置为static</p>
+<p>例如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># BOOTPROTO=dhcp</span><br><span class="line">BOOTPROTO=static</span><br><span class="line"></span><br><span class="line">IPADDR=192.168.5.223</span><br><span class="line">NETMASK=255.255.255.0</span><br><span class="line">GATEWAY=192.168.5.1</span><br><span class="line">DNS=114.114.114.114</span><br></pre></td></tr></table></figure>
+
+<h3 id="关闭防火墙"><a href="#关闭防火墙" class="headerlink" title="关闭防火墙"></a>关闭防火墙</h3><p>检查防火墙的状态：systemctl status firewalld<br>关闭防火墙：systemctl stop firewalld<br>关闭防火墙开机启动：systemctl disable firewalld</p>
+<h3 id="设置代理"><a href="#设置代理" class="headerlink" title="设置代理"></a>设置代理</h3><p>用于访问github等</p>
+<h3 id="docker-安装"><a href="#docker-安装" class="headerlink" title="docker 安装"></a>docker 安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 卸载旧docker</span></span><br><span class="line">sudo yum remove docker \</span><br><span class="line">                  docker-client \</span><br><span class="line">                  docker-client-latest \</span><br><span class="line">                  docker-common \</span><br><span class="line">                  docker-latest \</span><br><span class="line">                  docker-latest-logrotate \</span><br><span class="line">                  docker-logrotate \</span><br><span class="line">                  docker-engine</span><br><span class="line"></span><br><span class="line">sudo yum install -y yum-utils</span><br><span class="line"></span><br><span class="line"><span class="comment"># 国内源</span></span><br><span class="line">sudo yum-config-manager \</span><br><span class="line">    --add-repo \</span><br><span class="line">    https://mirrors.ustc.edu.cn/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 编辑 Docker 的 YUM 源配置文件：</span></span><br><span class="line">sudo nano /etc/yum.repos.d/docker-ce.repo</span><br><span class="line"><span class="comment">#将baseurl字段的值更改为阿里云的镜像源地址：</span></span><br><span class="line">baseurl=https://mirrors.aliyun.com/docker-ce/linux/centos/7/<span class="variable">$basearch</span>/stable</span><br><span class="line"></span><br><span class="line"><span class="comment"># Docker Engine</span></span><br><span class="line">sudo yum install docker-ce docker-ce-cli containerd.io</span><br><span class="line"></span><br><span class="line"><span class="comment">#启动</span></span><br><span class="line">sudo systemctl <span class="built_in">enable</span> docker</span><br><span class="line">sudo systemctl start docker</span><br></pre></td></tr></table></figure>
+
+<p>报错</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Retrieving key from https://download.docker.com/linux/centos/gpg</span><br><span class="line">GPG key retrieval failed: [Errno 14] curl#7 - &quot;Failed to connect to 2a03:2880:f10e:83:face:b00c:0:25de: Network is unreachable&quot;</span><br></pre></td></tr></table></figure>
+<p>解决</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">https://download.docker.com/linux/centos/gpg 下载</span><br><span class="line">sudo rpm --import &lt;下载的GPG密钥文件路径&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#启动与开机自启</span><br><span class="line"></span><br><span class="line">sudo systemctl start docker</span><br><span class="line">sudo systemctl enable docker</span><br><span class="line"></span><br><span class="line">#验证安装</span><br><span class="line">sudo docker --version</span><br><span class="line"></span><br><span class="line">#更换镜像源</span><br><span class="line">sudo vim /etc/docker/daemon.json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [</span><br><span class="line">    &quot;https://cn-mirror.aliyuncs.com&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>docker network ls</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">docker network create hm-net</span><br><span class="line"><span class="comment">#MYSQL</span></span><br><span class="line">docker run -d --name mysql \</span><br><span class="line">    -p 3306:3306 mysql \</span><br><span class="line">    -e MYSQL_ROOT_PASSWORD=123 \</span><br><span class="line">    -e TZ=Asia/Shanghai         \</span><br><span class="line">    -v /root/mysql/data/:/var/lib/mysql \</span><br><span class="line">    -v /root/mysql/conf/:/etc/mysql/conf.d \</span><br><span class="line">    -v /root/mysql/init/:/docker-entrypoint-initdb.d \</span><br><span class="line">    --network hm-net \</span><br><span class="line">    mysql</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">docker ps</span><br></pre></td></tr></table></figure>
+
+<h3 id="docker-镜像加速器"><a href="#docker-镜像加速器" class="headerlink" title="docker 镜像加速器"></a>docker 镜像加速器</h3><p><a target="_blank" rel="noopener" href="https://cr.console.aliyun.com/cn-shanghai/instances/mirrors">https://cr.console.aliyun.com/cn-shanghai/instances/mirrors</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">1. 安装／升级Docker客户端</span><br><span class="line">推荐安装1.10.0以上版本的Docker客户端，参考文档docker-ce</span><br><span class="line"></span><br><span class="line">2. 配置镜像加速器</span><br><span class="line">针对Docker客户端版本大于 1.10.0 的用户</span><br><span class="line"></span><br><span class="line">您可以通过修改daemon配置文件/etc/docker/daemon.json来使用加速器</span><br><span class="line"></span><br><span class="line">sudo mkdir -p /etc/docker</span><br><span class="line">sudo tee /etc/docker/daemon.json &lt;&lt;-&#x27;EOF&#x27;</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://gisjvfmb.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">John Doe</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/06/14/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">http://example.com/2024/06/14/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83/">配置环境</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/06/19/leetcode-1/" title="leetcode-1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">leetcode-1</div></div></a></div><div class="next-post pull-right"><a href="/2024/05/10/MySQL%E7%BB%BC%E5%90%88/" title="MySQL综合"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL综合</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">John Doe</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%9C%AC%E5%9C%B0%E5%AE%89%E8%A3%85"><span class="toc-number">1.</span> <span class="toc-text">虚拟机本地安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#centos7"><span class="toc-number">1.1.</span> <span class="toc-text">centos7</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.</span> <span class="toc-text">网络配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E9%9D%99%E6%80%81IP"><span class="toc-number">1.3.</span> <span class="toc-text">设置静态IP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%97%AD%E9%98%B2%E7%81%AB%E5%A2%99"><span class="toc-number">1.4.</span> <span class="toc-text">关闭防火墙</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E4%BB%A3%E7%90%86"><span class="toc-number">1.5.</span> <span class="toc-text">设置代理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#docker-%E5%AE%89%E8%A3%85"><span class="toc-number">1.6.</span> <span class="toc-text">docker 安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#docker-%E9%95%9C%E5%83%8F%E5%8A%A0%E9%80%9F%E5%99%A8"><span class="toc-number">1.7.</span> <span class="toc-text">docker 镜像加速器</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/19/leetcode-1/" title="leetcode-1">leetcode-1</a><time datetime="2024-06-19T02:01:21.000Z" title="发表于 2024-06-19 10:01:21">2024-06-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/14/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="虚拟机与环境搭建">虚拟机与环境搭建</a><time datetime="2024-06-14T01:39:03.000Z" title="发表于 2024-06-14 09:39:03">2024-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/10/MySQL%E7%BB%BC%E5%90%88/" title="MySQL综合">MySQL综合</a><time datetime="2024-05-10T00:51:34.000Z" title="发表于 2024-05-10 08:51:34">2024-05-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/06/mysql/" title="mysql">mysql</a><time datetime="2024-05-06T00:14:18.000Z" title="发表于 2024-05-06 08:14:18">2024-05-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/04/25/My-first-blog/" title="My first blog">My first blog</a><time datetime="2024-04-25T05:40:51.000Z" title="发表于 2024-04-25 13:40:51">2024-04-25</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By John Doe</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b2"></script><script src="/js/main.js?v=4.14.0-b2"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = (ele) => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from(ele).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+    
+    codeMermaidEle.forEach(ele => {
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.innerHTML = `<pre class="mermaid-src" hidden>${ele.textContent}</pre>`
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+  
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
