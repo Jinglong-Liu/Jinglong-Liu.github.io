@@ -1,0 +1,363 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>手写Tomcat-7:support springboot | Hexo</title><meta name="robots" content="noindex"><meta name="author" content="liujinglong"><meta name="copyright" content="liujinglong"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本章节也是最后一章，初步学习一下Spring Boot，要求是 用jerry-mouse代替掉Spring Boot内置的Tomcat , 跑通一个jwt鉴权接口。并编写一个jerry-mouse-starter, 达到与spring-boot-starter-web一样的效果。 Spring Boot 工作方式在支持spring boot前，先弄清楚其工作方式。 首先让chatgpt简单介绍一下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手写Tomcat-7:support springboot">
+<meta property="og:url" content="https://jinglong-liu.github.io/2024/09/14/jerry-mouse-7/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本章节也是最后一章，初步学习一下Spring Boot，要求是 用jerry-mouse代替掉Spring Boot内置的Tomcat , 跑通一个jwt鉴权接口。并编写一个jerry-mouse-starter, 达到与spring-boot-starter-web一样的效果。 Spring Boot 工作方式在支持spring boot前，先弄清楚其工作方式。 首先让chatgpt简单介绍一下">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2024-09-14T05:51:37.000Z">
+<meta property="article:modified_time" content="2024-10-06T07:43:55.046Z">
+<meta property="article:author" content="liujinglong">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jinglong-liu.github.io/2024/09/14/jerry-mouse-7/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.14.0-b2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>(()=>{
+      const saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+      
+      window.btf = {
+        saveToLocal: saveToLocal,
+        getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = url
+          script.async = true
+          script.onerror = reject
+          script.onload = script.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            script.onload = script.onreadystatechange = null
+            resolve()
+          }
+
+          Object.keys(attr).forEach(key => {
+            script.setAttribute(key, attr[key])
+          })
+
+          document.head.appendChild(script)
+        }),
+
+        getCSS: (url, id = false) => new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          if (id) link.id = id
+          link.onerror = reject
+          link.onload = link.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            link.onload = link.onreadystatechange = null
+            resolve()
+          }
+          document.head.appendChild(link)
+        }),
+
+        addGlobalFn: (key, fn, name = false, parent = window) => {
+          const pjaxEnable = false
+          if (!pjaxEnable && key.startsWith('pjax')) return
+
+          const globalFn = parent.globalFn || {}
+          const keyObj = globalFn[key] || {}
+    
+          if (name && keyObj[name]) return
+    
+          name = name || Object.keys(keyObj).length
+          keyObj[name] = fn
+          globalFn[key] = keyObj
+          parent.globalFn = globalFn
+        }
+      }
+    
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+      
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })()</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '手写Tomcat-7:support springboot',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-10-06 15:43:55'
+}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">手写Tomcat-7:support springboot</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-14T05:51:37.000Z" title="发表于 2024-09-14 13:51:37">2024-09-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-06T07:43:55.046Z" title="更新于 2024-10-06 15:43:55">2024-10-06</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="leancloud_visitors" id="/2024/09/14/jerry-mouse-7/" data-flag-title="手写Tomcat-7:support springboot"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span class="leancloud-visitors-count"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>本章节也是最后一章，初步学习一下<code>Spring Boot</code>，要求是 <strong>用jerry-mouse代替掉Spring Boot内置的Tomcat</strong> , 跑通一个jwt鉴权接口。并编写一个<code>jerry-mouse-starter</code>, 达到与<code>spring-boot-starter-web</code>一样的效果。</p>
+<h1 id="Spring-Boot-工作方式"><a href="#Spring-Boot-工作方式" class="headerlink" title="Spring Boot 工作方式"></a>Spring Boot 工作方式</h1><p>在支持<code>spring boot</code>前，先弄清楚其工作方式。</p>
+<p>首先让<code>chatgpt</code>简单介绍一下<code>Spring Boot</code>(以下内容来自<code>chatgpt</code>)</p>
+<p><code>Spring Boot</code> 是基于 <code>Spring</code> 框架的开源框架，旨在简化 <code>Spring</code> 应用开发。它提供了一种快速构建生产级 <code>Spring</code> 应用的方式，尤其是在微服务架构下非常受欢迎。以下是 <code>Spring Boot</code> 的一些主要特点和优势：</p>
+<ul>
+<li><ol>
+<li>自动配置<br>Spring Boot 提供自动配置功能，可以根据应用的依赖自动配置 Spring 的 Bean，减少了手动配置的麻烦。例如，当你引入 spring-boot-starter-web 依赖时，Spring Boot 会自动配置一个 Web 应用环境，无需手动编写大量配置文件。</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>嵌入式服务器<br>Spring Boot 提供了嵌入式的 Tomcat、Jetty、Undertow 等服务器，可以直接在项目中运行 Web 应用，无需额外配置外部服务器。你可以直接通过 java -jar 命令运行打包后的 Spring Boot 应用。</li>
+</ol>
+</li>
+<li><ol start="3">
+<li>简化的依赖管理<br>Spring Boot 提供了大量的 “starter” 依赖包（如 spring-boot-starter-web、spring-boot-starter-data-jpa 等），这些包预先定义了常用的依赖组合，开发者可以通过引入这些 starter 简化依赖管理。</li>
+</ol>
+</li>
+<li><ol start="4">
+<li>健康检查与监控<br>通过 Spring Boot Actuator，开发者可以方便地监控应用的运行状态，包括健康检查、度量数据、内存信息等。</li>
+</ol>
+</li>
+<li><ol start="5">
+<li>生产就绪特性<br>Spring Boot 为应用提供了许多生产级别的特性，包括日志、异常处理、健康检查、应用监控等，方便开发者快速构建稳定、可靠的应用。</li>
+</ol>
+</li>
+<li><ol start="6">
+<li>外部化配置<br>Spring Boot 支持通过 application.properties 或 application.yml 文件配置应用，也可以从外部源（如环境变量、命令行参数）动态加载配置，支持不同环境的配置管理。</li>
+</ol>
+</li>
+<li><ol start="7">
+<li>微服务友好<br>Spring Boot 是 Spring Cloud 的基础，它简化了微服务开发，集成了许多微服务架构中常用的功能，如服务注册与发现、负载均衡、配置管理等。</li>
+</ol>
+</li>
+</ul>
+<p>作为入门，本章节仅研究与web相关的内容。主要是 <strong>嵌入式服务器</strong> 。当你引入<code>spring-boot-starter-web</code> 时，会引入一个嵌入式的<code>Tomcat</code>。当你启动<code>SpringApplication.run</code>时，程序不会立即结束，而是监听一个端口。实际上，就是启动了内置的<code>Tomcat</code>。</p>
+<p>内置服务器是可以定制的，<code>SpringBoot</code> 提供了三种服务器，当然，也可以定制成我们自己写的<code>jerry-mouse</code>，但是，需要我们自己编写相应的<code>Factory</code>，适配相关的接口。</p>
+<p>需要编写的的<code>starter</code>形如</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;UTF-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jerry-mouse<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.github<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-jerry-mouse<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">maven.compiler.source</span>&gt;</span>8<span class="tag">&lt;/<span class="name">maven.compiler.source</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">maven.compiler.target</span>&gt;</span>8<span class="tag">&lt;/<span class="name">maven.compiler.target</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.6.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-tomcat<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.github<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jerry-mouse-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="启动流程与相关接口"><a href="#启动流程与相关接口" class="headerlink" title="启动流程与相关接口"></a>启动流程与相关接口</h1><p>我们新建一个springboot web项目, 调试观察<code>webserver</code>相关的启动流程</p>
+<p>打一下dump</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&quot;main@1&quot; prio=5 tid=0x1 nid=NA runnable</span><br><span class="line">  java.lang.Thread.State: RUNNABLE</span><br><span class="line">	  at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getWebServer(TomcatServletWebServerFactory.java:191)</span><br><span class="line">	  at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.createWebServer(ServletWebServerApplicationContext.java:182)</span><br><span class="line">	  at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:160)</span><br><span class="line">	  at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:577)</span><br><span class="line">	  - locked &lt;0x13b1&gt; (a java.lang.Object)</span><br><span class="line">	  at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:145)</span><br><span class="line">	  at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:732)</span><br><span class="line">	  at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:414)</span><br><span class="line">	  at org.springframework.boot.SpringApplication.run(SpringApplication.java:302)</span><br><span class="line">	  at org.springframework.boot.SpringApplication.run(SpringApplication.java:1303)</span><br><span class="line">	  at org.springframework.boot.SpringApplication.run(SpringApplication.java:1292)</span><br><span class="line">	  at com.github.test.web.App.main(App.java:17)</span><br></pre></td></tr></table></figure>
+
+<p>发现最后调用了<code>TomcatServletWebServerFactory</code>的<code>getWebServer</code>来获取<code>Tomcat</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TomcatServletWebServerFactory</span> <span class="keyword">extends</span> <span class="title class_">AbstractServletWebServerFactory</span></span><br><span class="line">		<span class="keyword">implements</span> <span class="title class_">ConfigurableTomcatWebServerFactory</span>, ResourceLoaderAware &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> WebServer <span class="title function_">getWebServer</span><span class="params">(ServletContextInitializer... initializers)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">this</span>.disableMBeanRegistry) &#123;</span><br><span class="line">            Registry.disableRegistry();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">Tomcat</span> <span class="variable">tomcat</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Tomcat</span>();</span><br><span class="line">        <span class="type">File</span> <span class="variable">baseDir</span> <span class="operator">=</span> (<span class="built_in">this</span>.baseDirectory != <span class="literal">null</span>) ? <span class="built_in">this</span>.baseDirectory : createTempDir(<span class="string">&quot;tomcat&quot;</span>);</span><br><span class="line">        tomcat.setBaseDir(baseDir.getAbsolutePath());</span><br><span class="line">        <span class="keyword">for</span> (LifecycleListener listener : <span class="built_in">this</span>.serverLifecycleListeners) &#123;</span><br><span class="line">            tomcat.getServer().addLifecycleListener(listener);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">Connector</span> <span class="variable">connector</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Connector</span>(<span class="built_in">this</span>.protocol);</span><br><span class="line">        connector.setThrowOnFailure(<span class="literal">true</span>);</span><br><span class="line">        tomcat.getService().addConnector(connector);</span><br><span class="line">        customizeConnector(connector);</span><br><span class="line">        tomcat.setConnector(connector);</span><br><span class="line">        tomcat.getHost().setAutoDeploy(<span class="literal">false</span>);</span><br><span class="line">        configureEngine(tomcat.getEngine());</span><br><span class="line">        <span class="keyword">for</span> (Connector additionalConnector : <span class="built_in">this</span>.additionalTomcatConnectors) &#123;</span><br><span class="line">            tomcat.getService().addConnector(additionalConnector);</span><br><span class="line">        &#125;</span><br><span class="line">        prepareContext(tomcat.getHost(), initializers);</span><br><span class="line">        <span class="keyword">return</span> getTomcatWebServer(tomcat);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>往上翻一层</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ServletWebServerApplicationContext</span> <span class="keyword">extends</span> <span class="title class_">GenericWebApplicationContext</span></span><br><span class="line">		<span class="keyword">implements</span> <span class="title class_">ConfigurableWebServerApplicationContext</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onRefresh</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onRefresh();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            createWebServer();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ApplicationContextException</span>(<span class="string">&quot;Unable to start web server&quot;</span>, ex);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">createWebServer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">WebServer</span> <span class="variable">webServer</span> <span class="operator">=</span> <span class="built_in">this</span>.webServer;</span><br><span class="line">        <span class="type">ServletContext</span> <span class="variable">servletContext</span> <span class="operator">=</span> getServletContext();</span><br><span class="line">        <span class="keyword">if</span> (webServer == <span class="literal">null</span> &amp;&amp; servletContext == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="type">StartupStep</span> <span class="variable">createWebServer</span> <span class="operator">=</span> <span class="built_in">this</span>.getApplicationStartup().start(<span class="string">&quot;spring.boot.webserver.create&quot;</span>);</span><br><span class="line">            <span class="comment">// 通过Factory定制webserver</span></span><br><span class="line">            <span class="type">ServletWebServerFactory</span> <span class="variable">factory</span> <span class="operator">=</span> getWebServerFactory();</span><br><span class="line">            createWebServer.tag(<span class="string">&quot;factory&quot;</span>, factory.getClass().toString());</span><br><span class="line">            <span class="comment">// webserver</span></span><br><span class="line">            <span class="built_in">this</span>.webServer = factory.getWebServer(getSelfInitializer());</span><br><span class="line">            createWebServer.end();</span><br><span class="line">            getBeanFactory().registerSingleton(<span class="string">&quot;webServerGracefulShutdown&quot;</span>,</span><br><span class="line">                    <span class="keyword">new</span> <span class="title class_">WebServerGracefulShutdownLifecycle</span>(<span class="built_in">this</span>.webServer));</span><br><span class="line">            getBeanFactory().registerSingleton(<span class="string">&quot;webServerStartStop&quot;</span>,</span><br><span class="line">                    <span class="keyword">new</span> <span class="title class_">WebServerStartStopLifecycle</span>(<span class="built_in">this</span>, <span class="built_in">this</span>.webServer));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (servletContext != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                getSelfInitializer().onStartup(servletContext);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">catch</span> (ServletException ex) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ApplicationContextException</span>(<span class="string">&quot;Cannot initialize servlet context&quot;</span>, ex);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        initPropertySources();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里使用了工厂模式，通过<code>ServletWebServerFactory</code>定制<code>WebServer</code></p>
+<p>翻一下代码，看下已经有了几种Factory</p>
+<p><img src="https://jinglong-liu.github.io/images/jerrymouse/7/3factory.png" alt="jm7-1"></p>
+<p>我们要做的，就是定制自己的<code>jerry-mouse factory</code>。实现自己的getWebServer，也就是返回jerry-mouse。</p>
+<p>另外看一下，返回的webserver需要什么方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">WebServer</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Starts the web server. Calling this method on an already started server has no</span></span><br><span class="line"><span class="comment">	 * effect.</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@throws</span> WebServerException if the server cannot be started</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> <span class="keyword">throws</span> WebServerException;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Stops the web server. Calling this method on an already stopped server has no</span></span><br><span class="line"><span class="comment">	 * effect.</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@throws</span> WebServerException if the server cannot be stopped</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> <span class="keyword">throws</span> WebServerException;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Return the port this server is listening on.</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span> the port (or -1 if none)</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="type">int</span> <span class="title function_">getPort</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Initiates a graceful shutdown of the web server. Handling of new requests is</span></span><br><span class="line"><span class="comment">	 * prevented and the given &#123;<span class="doctag">@code</span> callback&#125; is invoked at the end of the attempt. The</span></span><br><span class="line"><span class="comment">	 * attempt can be explicitly ended by invoking &#123;<span class="doctag">@link</span> #stop&#125;. The default</span></span><br><span class="line"><span class="comment">	 * implementation invokes the callback immediately with</span></span><br><span class="line"><span class="comment">	 * &#123;<span class="doctag">@link</span> GracefulShutdownResult#IMMEDIATE&#125;, i.e. no attempt is made at a graceful</span></span><br><span class="line"><span class="comment">	 * shutdown.</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> callback the callback to invoke when the graceful shutdown completes</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@since</span> 2.3.0</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">default</span> <span class="keyword">void</span> <span class="title function_">shutDownGracefully</span><span class="params">(GracefulShutdownCallback callback)</span> &#123;</span><br><span class="line">		callback.shutdownComplete(GracefulShutdownResult.IMMEDIATE);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要实现上述四个方法。最后一个方法不影响正常运行时的状态，可以先不实现。</p>
+<p>前三个方法，在之前完成的<code>jerry-mouse</code>的基础上，只需要少量封装即可实现，这实际上可以说是一种适配器的设计模式。</p>
+<h1 id="功能实现：支持-SpringBoot-hello-world"><a href="#功能实现：支持-SpringBoot-hello-world" class="headerlink" title="功能实现：支持 SpringBoot hello world"></a>功能实现：支持 SpringBoot hello world</h1><h2 id="starter-与-Factory-的实现"><a href="#starter-与-Factory-的实现" class="headerlink" title="starter 与 Factory 的实现"></a>starter 与 Factory 的实现</h2><p>Factory需要注入到Spring容器，jerry-mouse本身不应当引入spring, 而我们又不能让使用该框架的程序员自己编写Factory。所以遇事不决加一层，可以通过添加一个中间的模块<code>starter</code>来适配</p>
+<p>实现后，应该可以监听端口，是请求仍然404</p>
+<blockquote>
+<p>starter中的config如何被加载？</p>
+</blockquote>
+<h2 id="动态添加-DispatcherServlet"><a href="#动态添加-DispatcherServlet" class="headerlink" title="动态添加 DispatcherServlet"></a>动态添加 DispatcherServlet</h2><p>启动Spring Boot Hello world demo, </p>
+<p>请求 </p>
+<p><code>&gt; GET /root/hello</code></p>
+<p>发现匹配不到，返回404。分析原因。</p>
+<p>在springmvc中，扫描包流程已经被spring支持。其中用到的容器(Tomcat)的接口也都已经实现，那还遗漏了什么？<br>内嵌Tomcat(jerry-mouse)的启动方式，和web.xml解析的方式，还有什么区别？</p>
+<p>仔细看，发现DispatcherServlet的注册。</p>
+<p>在springmvc中，我们的DispatcherServlet是在web.xml中标注，在加载war包时加载注册，就和一个普通的servlet相同，由DispatcherServlet负责通过注解解析其他的Servlet(Controller,…)</p>
+<p>那么在内嵌Tomcat的Spring Boot中，有没有类似的机制？</p>
+<p>我们发现，spring-boot-starter-web里面，由这两个依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.3.15<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>compile<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-webmvc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.3.15<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>compile<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>所以机制是一样的，也是用DispatcherServlet，那么我们关注这个Servlet是如何被加载的。</p>
+<p>我们发现，是一个之前一直没有使用的接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ApplicationContext</span> <span class="keyword">implements</span> <span class="title class_">ServletContext</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> ServletRegistration.Dynamic <span class="title function_">addServlet</span><span class="params">(String servletName, Servlet servlet)</span>&#123;</span><br><span class="line">        <span class="comment">// TODO</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> FilterRegistration.Dynamic <span class="title function_">addFilter</span><span class="params">(String filterName, Filter filter)</span>&#123;</span><br><span class="line">        <span class="comment">// TODO</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用的地方</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">DynamicRegistrationBean</span>&lt;D <span class="keyword">extends</span> <span class="title class_">Registration</span>.Dynamic&gt; <span class="keyword">extends</span> <span class="title class_">RegistrationBean</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">	<span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">register</span><span class="params">(String description, ServletContext servletContext)</span> &#123;</span><br><span class="line">		<span class="type">D</span> <span class="variable">registration</span> <span class="operator">=</span> addRegistration(description, servletContext);</span><br><span class="line">		<span class="keyword">if</span> (registration == <span class="literal">null</span>) &#123;</span><br><span class="line">			logger.info(StringUtils.capitalize(description) + <span class="string">&quot; was not registered (possibly already registered?)&quot;</span>);</span><br><span class="line">			<span class="keyword">return</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		configure(registration);</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">configure</span><span class="params">(D registration)</span> &#123;</span><br><span class="line">		registration.setAsyncSupported(<span class="built_in">this</span>.asyncSupported);</span><br><span class="line">		<span class="keyword">if</span> (!<span class="built_in">this</span>.initParameters.isEmpty()) &#123;</span><br><span class="line">			registration.setInitParameters(<span class="built_in">this</span>.initParameters);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可见注册完servlet后，还需要做一些后置的处理：设置异步支持和初始变量。这个版本先不管异步支持。</p>
+<p>因此需要实现一个Dynamic的Registration</p>
+<p>实现完成后</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ApplicationContext</span> <span class="keyword">implements</span> <span class="title class_">ServletContext</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> ServletRegistration.Dynamic <span class="title function_">addServlet</span><span class="params">(String servletName, Servlet servlet)</span> &#123;</span><br><span class="line">        <span class="comment">// servletName = &quot;dispatchServlet&quot;</span></span><br><span class="line">        <span class="comment">// servlet = &quot;DispatchServlet&quot;</span></span><br><span class="line">        servletManager.register(servletName, (HttpServlet) servlet);</span><br><span class="line">        <span class="type">ApplicationServletRegistration</span> <span class="variable">registration</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ApplicationServletRegistration</span>(<span class="built_in">this</span>, servletName, servlet);</span><br><span class="line">        <span class="keyword">return</span> registration;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>类似地，<code>Filter</code>也实现一个<code>Rigstration</code>，并在<code>addFilter</code>里面注册。</p>
+<h2 id="hello-world-用例参考"><a href="#hello-world-用例参考" class="headerlink" title="hello world 用例参考"></a>hello world 用例参考</h2><p>Result类：统一返回格式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.github.ljl.test.web.result;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.AllArgsConstructor;</span><br><span class="line"><span class="keyword">import</span> lombok.Data;</span><br><span class="line"><span class="keyword">import</span> lombok.NoArgsConstructor;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.Serializable;</span><br><span class="line"></span><br><span class="line"><span class="meta">@NoArgsConstructor</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Result</span>&lt;T&gt; <span class="keyword">implements</span> <span class="title class_">Serializable</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 0 成功，其他失败</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> Integer code;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 错误信息</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> String msg;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 数据</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> T data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Result&lt;T&gt; <span class="title function_">msg</span><span class="params">(String msg)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.msg = msg;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Result&lt;T&gt; <span class="title function_">success</span><span class="params">()</span> &#123;</span><br><span class="line">        Result&lt;T&gt; result = <span class="keyword">new</span> <span class="title class_">Result</span>&lt;T&gt;();</span><br><span class="line">        result.code = <span class="number">0</span>;</span><br><span class="line">        result.msg = <span class="string">&quot;success&quot;</span>;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Result&lt;T&gt; <span class="title function_">success</span><span class="params">(T object)</span> &#123;</span><br><span class="line">        Result&lt;T&gt; result = <span class="keyword">new</span> <span class="title class_">Result</span>&lt;T&gt;();</span><br><span class="line">        result.data = object;</span><br><span class="line">        result.code = <span class="number">0</span>;</span><br><span class="line">        result.msg = <span class="string">&quot;success&quot;</span>;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Result&lt;T&gt; <span class="title function_">error</span><span class="params">(String msg)</span> &#123;</span><br><span class="line">        <span class="type">Result</span> <span class="variable">result</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Result</span>();</span><br><span class="line">        result.msg = msg;</span><br><span class="line">        result.code = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>HelloVO：hello返回的data的字段</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.github.ljl.test.web.pojo.vo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.AllArgsConstructor;</span><br><span class="line"><span class="keyword">import</span> lombok.Data;</span><br><span class="line"><span class="keyword">import</span> lombok.NoArgsConstructor;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@NoArgsConstructor</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloVO</span> &#123;</span><br><span class="line">    String key1;</span><br><span class="line">    String key2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Controller: 控制器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.github.ljl.test.web.controller;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.github.ljl.test.web.pojo.vo.HelloVO;</span><br><span class="line"><span class="keyword">import</span> com.github.ljl.test.web.result.Result;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.GetMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/hello&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloController</span> &#123;</span><br><span class="line">    <span class="meta">@GetMapping</span></span><br><span class="line">    <span class="keyword">public</span> Result&lt;HelloVO&gt; <span class="title function_">hello</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">HelloVO</span> <span class="variable">helloVO</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HelloVO</span>(<span class="string">&quot;value1&quot;</span>, <span class="string">&quot;value2&quot;</span>);</span><br><span class="line">        Result&lt;HelloVO&gt; result = Result.success(helloVO).msg(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>请求：</p>
+<p><code>GET /root/hello</code></p>
+<p>拟返回</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;code&quot;: 0,</span><br><span class="line">    &quot;msg&quot;: &quot;hello&quot;,</span><br><span class="line">    &quot;data&quot;: &#123;</span><br><span class="line">        &quot;key1&quot;: &quot;value1&quot;,</span><br><span class="line">        &quot;key2&quot;: &quot;value2&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="hello-world"><a href="#hello-world" class="headerlink" title="hello world"></a>hello world</h2><p>完成两个Rigstration后，再次运行:</p>
+<p><code>&gt; GET /root/hello</code></p>
+<p>应当可以跑通Hello World,</p>
+<p>有提示报错，Did not match 一些class，可以先不管，先访问接口看能否跑通，如不能，再调试</p>
+<p>前缀<code>root</code>是为了和运行其他的<code>war</code>包的<code>app-name</code>区分，后面可以优化掉，不影响总体的功能。</p>
+<p>至此，<code>jerry-mouse</code> 取代了<code>Tomcat</code>, 嵌入了<code>Spring Boot APP</code>中，并成功运行了<code>Spring Boot hello world</code>。恭喜你！</p>
+<h1 id="测试用例：jwt-redis-login"><a href="#测试用例：jwt-redis-login" class="headerlink" title="测试用例：jwt + redis login"></a>测试用例：jwt + redis login</h1><p>用到了redis，可以本地配置redis，也可以虚拟机&#x2F;云服务器配置redis。</p>
+<!-- flag of hidden posts --></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io">liujinglong</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io/2024/09/14/jerry-mouse-7/">https://jinglong-liu.github.io/2024/09/14/jerry-mouse-7/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jinglong-liu.github.io" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liujinglong</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Spring-Boot-%E5%B7%A5%E4%BD%9C%E6%96%B9%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">Spring Boot 工作方式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3"><span class="toc-number">2.</span> <span class="toc-text">启动流程与相关接口</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0%EF%BC%9A%E6%94%AF%E6%8C%81-SpringBoot-hello-world"><span class="toc-number">3.</span> <span class="toc-text">功能实现：支持 SpringBoot hello world</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#starter-%E4%B8%8E-Factory-%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.1.</span> <span class="toc-text">starter 与 Factory 的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E6%B7%BB%E5%8A%A0-DispatcherServlet"><span class="toc-number">3.2.</span> <span class="toc-text">动态添加 DispatcherServlet</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hello-world-%E7%94%A8%E4%BE%8B%E5%8F%82%E8%80%83"><span class="toc-number">3.3.</span> <span class="toc-text">hello world 用例参考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hello-world"><span class="toc-number">3.4.</span> <span class="toc-text">hello world</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%EF%BC%9Ajwt-redis-login"><span class="toc-number">4.</span> <span class="toc-text">测试用例：jwt + redis login</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/10/06/juc-jmm/" title="Java 内存模型 (JMM)">Java 内存模型 (JMM)</a><time datetime="2024-10-06T00:50:17.000Z" title="发表于 2024-10-06 08:50:17">2024-10-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/18/asehw-1/" title="无题">无题</a><time datetime="2024-09-18T10:49:38.048Z" title="发表于 2024-09-18 18:49:38">2024-09-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/10/build-open-jdk/" title="build-open-jdk">build-open-jdk</a><time datetime="2024-09-10T04:38:55.000Z" title="发表于 2024-09-10 12:38:55">2024-09-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/08/redis-listpack/" title="listpack, ziplist, quicklist">listpack, ziplist, quicklist</a><time datetime="2024-09-08T00:05:26.000Z" title="发表于 2024-09-08 08:05:26">2024-09-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/08/skiplist/" title="zset 与 skiplist">zset 与 skiplist</a><time datetime="2024-09-08T00:05:26.000Z" title="发表于 2024-09-08 08:05:26">2024-09-08</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By liujinglong</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b2"></script><script src="/js/main.js?v=4.14.0-b2"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = (ele) => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from(ele).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+    
+    codeMermaidEle.forEach(ele => {
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.innerHTML = `<pre class="mermaid-src" hidden>${ele.textContent}</pre>`
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+  
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const initValine = () => {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: '4JE6J6Fimc9mBF9PTJvsX6P2-gzGzoHsz',
+      appKey: '0F61JyHXoFJLYMGMy6p9aZhN',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: true
+    }, null))
+  }
+
+  const loadValine = async () => {
+    if (typeof Valine === 'function') initValine()
+    else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine@1.5.1/dist/Valine.min.js')
+      initValine()
+    }
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

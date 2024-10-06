@@ -1,0 +1,339 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>手写Tomcat-1:Hello Reactor Web Server | Hexo</title><meta name="robots" content="noindex"><meta name="author" content="liujinglong"><meta name="copyright" content="liujinglong"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="功能需求 要求手写Reactor框架，以及使用Netty框架，分别实现一个最简单的服务器，功能如下：  程序启动后， 用户使用Postman等工具，在本地的8888端口，发送任意http请求，要求：  程序能在控制台打印出接收到的http报文  设置http响应报文并返回，要求Body显示Hello, Reactor! 和 Hello, Netty!。也可直接访问：http:&#x2F;&#x2F;localhost">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手写Tomcat-1:Hello Reactor Web Server">
+<meta property="og:url" content="https://jinglong-liu.github.io/2024/09/14/jerry-mouse-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="功能需求 要求手写Reactor框架，以及使用Netty框架，分别实现一个最简单的服务器，功能如下：  程序启动后， 用户使用Postman等工具，在本地的8888端口，发送任意http请求，要求：  程序能在控制台打印出接收到的http报文  设置http响应报文并返回，要求Body显示Hello, Reactor! 和 Hello, Netty!。也可直接访问：http:&#x2F;&#x2F;localhost">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2024-09-14T01:08:35.000Z">
+<meta property="article:modified_time" content="2024-10-06T07:43:38.123Z">
+<meta property="article:author" content="liujinglong">
+<meta property="article:tag" content="jerry-mouse">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jinglong-liu.github.io/2024/09/14/jerry-mouse-1/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.14.0-b2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>(()=>{
+      const saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+      
+      window.btf = {
+        saveToLocal: saveToLocal,
+        getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = url
+          script.async = true
+          script.onerror = reject
+          script.onload = script.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            script.onload = script.onreadystatechange = null
+            resolve()
+          }
+
+          Object.keys(attr).forEach(key => {
+            script.setAttribute(key, attr[key])
+          })
+
+          document.head.appendChild(script)
+        }),
+
+        getCSS: (url, id = false) => new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          if (id) link.id = id
+          link.onerror = reject
+          link.onload = link.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            link.onload = link.onreadystatechange = null
+            resolve()
+          }
+          document.head.appendChild(link)
+        }),
+
+        addGlobalFn: (key, fn, name = false, parent = window) => {
+          const pjaxEnable = false
+          if (!pjaxEnable && key.startsWith('pjax')) return
+
+          const globalFn = parent.globalFn || {}
+          const keyObj = globalFn[key] || {}
+    
+          if (name && keyObj[name]) return
+    
+          name = name || Object.keys(keyObj).length
+          keyObj[name] = fn
+          globalFn[key] = keyObj
+          parent.globalFn = globalFn
+        }
+      }
+    
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+      
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })()</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '手写Tomcat-1:Hello Reactor Web Server',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-10-06 15:43:38'
+}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">手写Tomcat-1:Hello Reactor Web Server</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-14T01:08:35.000Z" title="发表于 2024-09-14 09:08:35">2024-09-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-06T07:43:38.123Z" title="更新于 2024-10-06 15:43:38">2024-10-06</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="leancloud_visitors" id="/2024/09/14/jerry-mouse-1/" data-flag-title="手写Tomcat-1:Hello Reactor Web Server"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span class="leancloud-visitors-count"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="功能需求"><a href="#功能需求" class="headerlink" title="功能需求"></a>功能需求</h1><blockquote>
+<p>要求手写<code>Reactor</code>框架，以及使用<code>Netty</code>框架，分别实现一个最简单的服务器，功能如下：</p>
+</blockquote>
+<p>程序启动后， 用户使用<code>Postman</code>等工具，在本地的<code>8888</code>端口，发送任意<code>http</code>请求，要求：</p>
+<ul>
+<li><p>程序能在控制台打印出接收到的<code>http</code>报文</p>
+</li>
+<li><p>设置<code>http</code>响应报文并返回，要求<code>Body</code>显示<code>Hello, Reactor!</code> 和 <code>Hello, Netty!</code>。也可直接访问：<a target="_blank" rel="noopener" href="http://localhost:8888/">http://localhost:8888/</a></p>
+</li>
+</ul>
+<p>参考接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">WebServerBootstrap</span> &#123;</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>用两种方式（手写<code>reactor</code>&#x2F;使用<code>netty</code>框架）分别实现</p>
+<blockquote>
+<p>通过本阶段的学习，希望你</p>
+</blockquote>
+<ul>
+<li><p>初步认识到<code>webserver</code>的基本功能</p>
+</li>
+<li><p>初步理解<code>nio</code>服务器的实现与<code>reactor</code>基本实现</p>
+</li>
+<li><p>初步认识<code>http</code>报文的格式，为之后的解析做好准备工作</p>
+</li>
+</ul>
+<h1 id="功能实现"><a href="#功能实现" class="headerlink" title="功能实现"></a>功能实现</h1><figure class="highlight plaintext"><figcaption><span>bash</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 分支名自拟</span><br><span class="line">git checkout -b feature-20240914-hello-reactor</span><br></pre></td></tr></table></figure>
+
+<p>参考实现<br><a target="_blank" rel="noopener" href="https://github.com/Jinglong-Liu/jerry-mouse/pull/1/commits/50775080abf354970c68df75acf466a20de6ba8c">github pr</a></p>
+<h2 id="reactor"><a href="#reactor" class="headerlink" title="reactor"></a>reactor</h2><p><code>reactor</code> 的代码主要参考自</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/JasirVoriya/dark-one/blob/master/byte-bye/src/main/java/cn/darkone/framework/common/bytebye/reactor/Reactor.java">dark-one</a></p>
+<p>再次对作者表示感谢。</p>
+<p>对于reactor网络模型的介绍，有很多经典的文章。可以直接参考学习。</p>
+<p>Scalable IO in Java: <a target="_blank" rel="noopener" href="https://gee.cs.oswego.edu/dl/cpjslides/nio.pdf">https://gee.cs.oswego.edu/dl/cpjslides/nio.pdf</a></p>
+<p>reactor-siemens: <a target="_blank" rel="noopener" href="https://www.dre.vanderbilt.edu/~schmidt/PDF/reactor-siemens.pdf">https://www.dre.vanderbilt.edu/~schmidt/PDF/reactor-siemens.pdf</a></p>
+<p>知乎: <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/706640252">https://zhuanlan.zhihu.com/p/706640252</a></p>
+<p>掘金: <a target="_blank" rel="noopener" href="https://juejin.cn/post/7128732976216539167">https://juejin.cn/post/7128732976216539167</a></p>
+<h2 id="Netty"><a href="#Netty" class="headerlink" title="Netty"></a>Netty</h2><p>Netty是一款基于NIO（Nonblocking I&#x2F;O，非阻塞IO）开发的网络通信框架。我们编写的服务器，也可以直接基于Netty实现。</p>
+<p>代码见github仓库</p>
+<p>Netty框架仅作介绍，且不作展开。后续实现都基于手写的Reactor框架。</p>
+<h2 id="HTTP-报文初探"><a href="#HTTP-报文初探" class="headerlink" title="HTTP 报文初探"></a>HTTP 报文初探</h2><p>实现服务器基本功能（能够接受到信息并返回信息）后，使用apifox&#x2F;tomcat等工具，发任意的GET和POST请求，观察控制台打印的报文信息，观察报文格式</p>
+<blockquote>
+<p>GET &#x2F;hello</p>
+</blockquote>
+<p>携带Params：</p>
+<p>id：123<br>name：456</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GET /hello?id=123&amp;name=456 HTTP/1.1</span><br><span class="line">User-Agent: Apifox/1.0.0 (https://apifox.com)</span><br><span class="line">Accept: */*</span><br><span class="line">Host: 127.0.0.1:8888</span><br><span class="line">Accept-Encoding: gzip, deflate, br</span><br><span class="line">Connection: keep-alive</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>POST &#x2F;mock&#x2F;login</p>
+</blockquote>
+<p>携带body</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span><span class="string">&quot;admin&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;password&quot;</span><span class="punctuation">:</span><span class="string">&quot;123456&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">POST /mock/login HTTP/1.1</span><br><span class="line">User-Agent: Apifox/1.0.0 (https://apifox.com)</span><br><span class="line">Content-Type: application/json</span><br><span class="line">Accept: */*</span><br><span class="line">Host: 127.0.0.1:8888</span><br><span class="line">Accept-Encoding: gzip, deflate, br</span><br><span class="line">Connection: keep-alive</span><br><span class="line">Content-Length: 54</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;username&quot;:&quot;admin&quot;,</span><br><span class="line">    &quot;password&quot;:&quot;123456&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以发现，HTTP的请求报文分成三个部分：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">请求行、首部字段、消息主体(可选)</span><br></pre></td></tr></table></figure>
+<p>响应报文的请求报文格式是类似的，可以分为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">状态行、首部字段、消息主体（可选）</span><br></pre></td></tr></table></figure>
+
+<p>有此，要想在返回的body里显示Hello Reactor，可以简单地构造如下报文返回</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HttpUtils</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">http200Resp</span><span class="params">(String rawText)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">format</span> <span class="operator">=</span> <span class="string">&quot;HTTP/1.1 200 OK\r\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;Content-Type: text/plain\r\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;\r\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot;%s&quot;</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> String.format(format, rawText);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试，观察结果是否符合预期</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>至此，</p>
+<ul>
+<li><p>实现了一个能收发信息的<code>Webserver</code>, 但无法正确处理<code>HTTP</code>请求。</p>
+</li>
+<li><p>对HTTP请求&#x2F;响应报文格式有了初步的认识。</p>
+</li>
+</ul>
+<figure class="highlight plaintext"><figcaption><span>bash</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">git add .</span><br><span class="line">git commit -s</span><br><span class="line"># 输入标题和内容，并保存退出vim</span><br><span class="line">git push origin feature-20240914-hello-reactor</span><br><span class="line"># 在远程仓库上，提交pull request，并合入 master</span><br><span class="line"></span><br><span class="line">git checkout master</span><br><span class="line">git pull --rebase</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h1><p>答案由笔者给出，仅供参考</p>
+<blockquote>
+<p>netty&#x2F;nio为什么快</p>
+</blockquote>
+<p>1、多路复用<br>Selector 监控多个通道（Channel），当有通道准备好时，处理相应的读写操作。这样只需要少量线程处理大量连接，极大减少了线程上下文切换和资源消耗</p>
+<p>2、非阻塞<br>Netty 可以通过非阻塞 IO 处理读写操作，读写操作不会阻塞线程，提高了系统整体吞吐量</p>
+<p>3、主从多线程reactor模型，接受连接与处理 I&#x2F;O 操作分开，充分利用多核 CPU 的优势。</p>
+<p>4、零拷贝<br>使用直接内存（Direct Memory）进行数据的读写，避免了 JVM 堆内存和操作系统内核之间的数据复制操作，减少了内存拷贝带来的性能损耗</p>
+<!-- flag of hidden posts --></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io">liujinglong</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io/2024/09/14/jerry-mouse-1/">https://jinglong-liu.github.io/2024/09/14/jerry-mouse-1/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jinglong-liu.github.io" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/jerry-mouse/">jerry-mouse</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liujinglong</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E9%9C%80%E6%B1%82"><span class="toc-number">1.</span> <span class="toc-text">功能需求</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.</span> <span class="toc-text">功能实现</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#reactor"><span class="toc-number">2.1.</span> <span class="toc-text">reactor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Netty"><span class="toc-number">2.2.</span> <span class="toc-text">Netty</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP-%E6%8A%A5%E6%96%87%E5%88%9D%E6%8E%A2"><span class="toc-number">2.3.</span> <span class="toc-text">HTTP 报文初探</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">4.</span> <span class="toc-text">思考题</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/10/06/juc-jmm/" title="Java 内存模型 (JMM)">Java 内存模型 (JMM)</a><time datetime="2024-10-06T00:50:17.000Z" title="发表于 2024-10-06 08:50:17">2024-10-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/18/asehw-1/" title="无题">无题</a><time datetime="2024-09-18T10:49:38.048Z" title="发表于 2024-09-18 18:49:38">2024-09-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/10/build-open-jdk/" title="build-open-jdk">build-open-jdk</a><time datetime="2024-09-10T04:38:55.000Z" title="发表于 2024-09-10 12:38:55">2024-09-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/08/redis-listpack/" title="listpack, ziplist, quicklist">listpack, ziplist, quicklist</a><time datetime="2024-09-08T00:05:26.000Z" title="发表于 2024-09-08 08:05:26">2024-09-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/08/skiplist/" title="zset 与 skiplist">zset 与 skiplist</a><time datetime="2024-09-08T00:05:26.000Z" title="发表于 2024-09-08 08:05:26">2024-09-08</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By liujinglong</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b2"></script><script src="/js/main.js?v=4.14.0-b2"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = (ele) => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from(ele).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+    
+    codeMermaidEle.forEach(ele => {
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.innerHTML = `<pre class="mermaid-src" hidden>${ele.textContent}</pre>`
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+  
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const initValine = () => {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: '4JE6J6Fimc9mBF9PTJvsX6P2-gzGzoHsz',
+      appKey: '0F61JyHXoFJLYMGMy6p9aZhN',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: true
+    }, null))
+  }
+
+  const loadValine = async () => {
+    if (typeof Valine === 'function') initValine()
+    else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine@1.5.1/dist/Valine.min.js')
+      initValine()
+    }
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
