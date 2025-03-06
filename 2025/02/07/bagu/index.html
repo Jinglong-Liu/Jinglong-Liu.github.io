@@ -1,0 +1,776 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>八股复习1 | Hexo</title><meta name="author" content="liujinglong"><meta name="copyright" content="liujinglong"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Redisredis 客户端jedis: 简单，线程不安全 适合低并发，小型Java项目 lettuce: 基于Netty的异步响应式编程 适合高并发，响应式应用 redission: 提供分布式对象和锁，支持同步，异步，响应式API； 适合需要分布式数据结构或分布式锁的项目 redis 集群 主从  写请求全部交给主库，读请求交给从库，从库定期同步主库数据  哨兵  主从模式的技术上，添加哨兵结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="八股复习1">
+<meta property="og:url" content="https://jinglong-liu.github.io/2025/02/07/bagu/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Redisredis 客户端jedis: 简单，线程不安全 适合低并发，小型Java项目 lettuce: 基于Netty的异步响应式编程 适合高并发，响应式应用 redission: 提供分布式对象和锁，支持同步，异步，响应式API； 适合需要分布式数据结构或分布式锁的项目 redis 集群 主从  写请求全部交给主库，读请求交给从库，从库定期同步主库数据  哨兵  主从模式的技术上，添加哨兵结">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2025-02-07T04:16:26.000Z">
+<meta property="article:modified_time" content="2025-02-22T11:12:49.095Z">
+<meta property="article:author" content="liujinglong">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jinglong-liu.github.io/2025/02/07/bagu/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.14.0-b2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>(()=>{
+      const saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+      
+      window.btf = {
+        saveToLocal: saveToLocal,
+        getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = url
+          script.async = true
+          script.onerror = reject
+          script.onload = script.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            script.onload = script.onreadystatechange = null
+            resolve()
+          }
+
+          Object.keys(attr).forEach(key => {
+            script.setAttribute(key, attr[key])
+          })
+
+          document.head.appendChild(script)
+        }),
+
+        getCSS: (url, id = false) => new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          if (id) link.id = id
+          link.onerror = reject
+          link.onload = link.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            link.onload = link.onreadystatechange = null
+            resolve()
+          }
+          document.head.appendChild(link)
+        }),
+
+        addGlobalFn: (key, fn, name = false, parent = window) => {
+          const pjaxEnable = false
+          if (!pjaxEnable && key.startsWith('pjax')) return
+
+          const globalFn = parent.globalFn || {}
+          const keyObj = globalFn[key] || {}
+    
+          if (name && keyObj[name]) return
+    
+          name = name || Object.keys(keyObj).length
+          keyObj[name] = fn
+          globalFn[key] = keyObj
+          parent.globalFn = globalFn
+        }
+      }
+    
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+      
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })()</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '八股复习1',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-02-22 19:12:49'
+}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">八股复习1</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-02-07T04:16:26.000Z" title="发表于 2025-02-07 12:16:26">2025-02-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-02-22T11:12:49.095Z" title="更新于 2025-02-22 19:12:49">2025-02-22</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="leancloud_visitors" id="/2025/02/07/bagu/" data-flag-title="八股复习1"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span class="leancloud-visitors-count"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h1><h2 id="redis-客户端"><a href="#redis-客户端" class="headerlink" title="redis 客户端"></a>redis 客户端</h2><p>jedis: 简单，线程不安全</p>
+<p>适合低并发，小型Java项目</p>
+<p>lettuce: 基于Netty的异步响应式编程</p>
+<p>适合高并发，响应式应用</p>
+<p>redission: 提供分布式对象和锁，支持同步，异步，响应式API；</p>
+<p>适合需要分布式数据结构或分布式锁的项目</p>
+<h2 id="redis-集群"><a href="#redis-集群" class="headerlink" title="redis 集群"></a>redis 集群</h2><ul>
+<li>主从</li>
+</ul>
+<p>写请求全部交给主库，读请求交给从库，从库定期同步主库数据</p>
+<ul>
+<li>哨兵</li>
+</ul>
+<p>主从模式的技术上，添加哨兵结点，哨兵结点利用心跳检测机制检测系统。如果主库宕机，哨兵自动选举一个从库升级为主库</p>
+<ul>
+<li>分片</li>
+</ul>
+<p>多个主从节点，移除哨兵，多个主节点形策P2P网络，互相心跳检测健康。</p>
+<p>插槽有16384个节点，每个主节点分到一些槽位。处理数据时，hash(key)对槽的数量取模，映射到槽位上，交给对应主节点处理。</p>
+<h2 id="redis-主从同步"><a href="#redis-主从同步" class="headerlink" title="redis 主从同步"></a>redis 主从同步</h2><p>分为全量同步和增量同步</p>
+<p>redis的数据集有一个id和偏移量offset<br>从库向主库提出同步请求，发送从库的id和offset</p>
+<ul>
+<li>如果主库的id !&#x3D; 从库的id，则触发全量同步：</li>
+</ul>
+<p>主库开启一个线程，将数据生成一个RDB，并发送给从库</p>
+<p>在生成RDB同时，主库仍然在更新。将这部分数据额外放到一个日志repl-backlog，并发送给从库。从库收到后，清空原有数据，用RDB更新数据，然后执行repl-backlog的数据，完成同步。</p>
+<ul>
+<li>如果主库的id &#x3D;&#x3D; 从库的id，则触发增量同步：</li>
+</ul>
+<p>主库回复continue, 根据从库的offset和主库的offset，查询repl-backlog，将两次offset之间的命令传给从库，从库执行。</p>
+<h1 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h1><h2 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h2><blockquote>
+<p>插入一行数据，什么时候写入三个日志</p>
+</blockquote>
+<p>Undo Log 会在事务执行期间持续写入</p>
+<p>在事务开始时，MySQL 会记录插入操作的反向操作。</p>
+<p>在事务进行时，插入操作会先写入 Redo Log。事务提交时，操作才会持久化到磁盘。</p>
+<p>插入操作完成后，SQL 语句会被记录到 Binary Log 中，用于复制和恢复。</p>
+<h2 id="超大分页"><a href="#超大分页" class="headerlink" title="超大分页"></a>超大分页</h2><p>如果直接使用limit，需要读出前面所有完整行并排序，然后舍弃不要的数据。</p>
+<p>可以在子查询中只查找id，然后通过覆盖索引的方式，让子查询走普通索引，就不需要读取完整的行数据。</p>
+<p>最后再根据子查询的id，取聚簇索引读取对应数据即可。</p>
+<h2 id="MySQL-主从同步"><a href="#MySQL-主从同步" class="headerlink" title="MySQL 主从同步"></a>MySQL 主从同步</h2><p>每次修改数据库，会将操作写到binlog，从库会有专门的线程来读取主库的binlog日志，并将内容写到从库的中继日志relay-log，然后从库读取relay-log执行相关操作，达成数据同步</p>
+<h2 id="分库分表"><a href="#分库分表" class="headerlink" title="分库分表"></a>分库分表</h2><p>水平分库，水平分表，垂直分库，垂直分表</p>
+<p>水平分库&#x2F;分表：数据拆开，分成两个结构和原来一样的库&#x2F;表，每个库&#x2F;表存一些数据，加起来是全部数据</p>
+<p>垂直分库：按业务分，用户一个库，订单一个库等</p>
+<p>垂直分表：字段拆开，分成两个表</p>
+<h2 id="join操作，性能缺点"><a href="#join操作，性能缺点" class="headerlink" title="join操作，性能缺点"></a>join操作，性能缺点</h2><p>使用索引（特别是在连接字段上）<br>减少不必要的 JOIN 表<br>适当使用 LIMIT 和分页<br>确保 JOIN 条件正确，避免笛卡尔积<br>优化查询，避免内存消耗过大<br>使用合适的连接类型（内连接 vs 外连接）</p>
+<h1 id="分布式"><a href="#分布式" class="headerlink" title="分布式"></a>分布式</h1><h2 id="Redis-分布式锁"><a href="#Redis-分布式锁" class="headerlink" title="Redis 分布式锁"></a>Redis 分布式锁</h2><p>setnx, redission</p>
+<blockquote>
+<p>先设置锁，后设置时间有什么问题，怎么解决</p>
+</blockquote>
+<p>问题:非原子化导致的问题。设置锁后，未设置时间前redis崩溃，导致一直被锁。</p>
+<p>解决：让这个过程原子化，SET lock_key unique_value NX PX 30000</p>
+<p>或者使用lua脚本</p>
+<blockquote>
+<p>锁续期</p>
+</blockquote>
+<p>看门狗</p>
+<p>检查锁是否仍然属于当前客户端，如果是，则延长锁的过期时间</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- KEYS[1]: 锁的键名</span></span><br><span class="line"><span class="comment">-- ARGV[1]: 当前客户端的唯一标识（锁的值）</span></span><br><span class="line"><span class="comment">-- ARGV[2]: 新的过期时间（毫秒）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 检查锁的值是否匹配当前客户端的唯一标识</span></span><br><span class="line"><span class="keyword">if</span> redis.call(<span class="string">&quot;GET&quot;</span>, KEYS[<span class="number">1</span>]) == ARGV[<span class="number">1</span>] <span class="keyword">then</span></span><br><span class="line">    <span class="comment">-- 如果匹配，则延长锁的过期时间</span></span><br><span class="line">    redis.call(<span class="string">&quot;PEXPIRE&quot;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">2</span>])</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span> <span class="comment">-- 续期成功</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span> <span class="comment">-- 续期失败（锁不属于当前客户端或锁已过期）</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>分布式锁的可重入怎么实现，原理</p>
+</blockquote>
+<p>设置一个标识符（如 UUID）表示锁的持有者。</p>
+<p>如果当前线程已经持有锁，则重入时只需要增加重入次数的计数。</p>
+<p>只有当重入计数为 0 时，才会释放锁。</p>
+<p>可以使用hash类型，key-field-value</p>
+<h2 id="CAP-和-BASE"><a href="#CAP-和-BASE" class="headerlink" title="CAP 和 BASE"></a>CAP 和 BASE</h2><p>CAP<br>C：一致性<br>A： 可用性<br>P：分区容错性<br>三者不可能同时满足<br>P必须有，所以有CP和AP两种</p>
+<p>BASE<br>BA：基本可用（可以部分不可用，核心要可用）<br>S：软状态：容忍暂时的不一致<br>E：最终一致性：系统在软状态结束后，要求最终一致</p>
+<h2 id="分布式服务-接口幂等性"><a href="#分布式服务-接口幂等性" class="headerlink" title="分布式服务 接口幂等性"></a>分布式服务 接口幂等性</h2><p>redis + token<br>请求分成两次：<br>第一次，业务和用户id 生成token放入redis<br>第二次，实际请求。先到redis查看token是否存在。存在就执行业务且伤处。不存在就不执行。</p>
+<h2 id="Raft"><a href="#Raft" class="headerlink" title="Raft"></a>Raft</h2><p>leader, follower, candidate</p>
+<p>leader处理客户端请求，将自己的日志推送follower；<br>follower记录日志，返回ack</p>
+<p>只有半数以上的follower返回ack，leader才提交事务</p>
+<p>leader提交事务后,follower也提交事务</p>
+<p>leader定期向follower发起心跳。当follower检测不到leader心跳时，把自己设置成candidate并起选举，得到过半结点投票的candidate成为新leader</p>
+<h2 id="限流"><a href="#限流" class="headerlink" title="限流"></a>限流</h2><h3 id="限流-令牌桶"><a href="#限流-令牌桶" class="headerlink" title="限流 令牌桶"></a>限流 令牌桶</h3><p>令牌桶算法是通过桶中存储令牌来进行限流，每个令牌代表一个请求。令牌以固定速率放入桶中，桶有一个最大容量，当桶满时新的令牌会丢弃。请求到来时，会从桶中取令牌，如果桶中没有令牌，则请求被拒绝。</p>
+<ul>
+<li>优点：<br>容忍突发流量：当令牌桶中有令牌时，可以高效处理突发流量。<br>支持平稳流量控制和突发流量控制。</li>
+<li>缺点：<br>需要维护令牌桶的状态，可能带来一定的存储和计算开销。<br>适用场景：适用于允许一定的突发流量，但同时限制平均速率的场景。</li>
+</ul>
+<h3 id="限流-漏斗算法（Leaky-Bucket）"><a href="#限流-漏斗算法（Leaky-Bucket）" class="headerlink" title="限流 漏斗算法（Leaky Bucket）"></a>限流 漏斗算法（Leaky Bucket）</h3><p>桶中的请求按固定速率处理。如果请求来的速度超过漏斗的流速，溢出的请求将会被丢弃。漏斗算法保证了流量的平稳输出。</p>
+<ul>
+<li>优点：<br>保证了请求的流量平稳输出。<br>适用于消化速率固定的场景。</li>
+<li>缺点：<br>对突发请求的容忍度较低，较严格的控制机制可能导致请求丢失。<br>适用场景：适用于请求输出速率固定且无法接受突发流量的场景。</li>
+</ul>
+<h3 id="实现：redis-限流"><a href="#实现：redis-限流" class="headerlink" title="实现：redis 限流"></a>实现：redis 限流</h3><p>可以利用 Redis 的 INCR 命令维护请求计数，并使用 EXPIRE 设置过期时间</p>
+<h2 id="熔断-降级"><a href="#熔断-降级" class="headerlink" title="熔断 降级"></a>熔断 降级</h2><p>熔断：</p>
+<p>当系统检测到某个服务调用出现异常（如失败率超过阈值）时，熔断器会“断开”与该服务的连接，拒绝进一步的请求，直到系统恢复正常</p>
+<p>降级：非常规应对措施</p>
+<p>有意识地降低系统的部分功能或服务质量，以保证系统的核心功能和关键服务仍能继续正常运行</p>
+<blockquote>
+<p>降级的实现方式</p>
+</blockquote>
+<ul>
+<li>开关硬编码</li>
+</ul>
+<p>if (tag) {<br>    …<br>}</p>
+<ul>
+<li><p>AOP拦截</p>
+</li>
+<li><p>策略&#x2F;工厂设计模式</p>
+</li>
+</ul>
+<blockquote>
+<p>总结区别</p>
+</blockquote>
+<ul>
+<li>熔断是针对系统故障时进行保护，避免故障扩散。</li>
+<li>限流是控制流量，防止系统过载。</li>
+<li>降级是当系统资源紧张时，降低服务质量，保障核心功能的正常运行。</li>
+</ul>
+<h1 id="MQ"><a href="#MQ" class="headerlink" title="MQ"></a>MQ</h1><h2 id="Kafka-消息丢失"><a href="#Kafka-消息丢失" class="headerlink" title="Kafka 消息丢失"></a>Kafka 消息丢失</h2><p>Kafka：生产者-&gt;broker-&gt;消费者。broker保存topic分区，分区中保存消息。</p>
+<p>生产者-&gt;broker: 异步发送，失败时回调处理或重发</p>
+<p>broker存储：分区主从备份。默认的ack是主分区保存好消息后ack，想要强一致可以设置acks &#x3D; all, 要求分区也保存完毕后再ack</p>
+<p>broker-&gt;消费者：可以关闭自动提交偏移量，采取手动提交偏移量。采用同步+异步。</p>
+<h2 id="Kafka-重复消费"><a href="#Kafka-重复消费" class="headerlink" title="Kafka 重复消费"></a>Kafka 重复消费</h2><p>设置消息的有效key相同，这样消息会路由到一个分区，同一个分区的消息按顺序消费。</p>
+<h2 id="Kafka-数据清理"><a href="#Kafka-数据清理" class="headerlink" title="Kafka 数据清理"></a>Kafka 数据清理</h2><p>Kafka的分区数据保存在本地的日志文件。文件过大时，分段成多个文件存储。消息过期触发清理。也可以开启topic所占文件超过一定数值，把最早的消息丢弃。</p>
+<h2 id="Kafka-高性能"><a href="#Kafka-高性能" class="headerlink" title="Kafka 高性能"></a>Kafka 高性能</h2><p>消息分区：topic划分为不同的分区存储在不同的broker上，可以不受限地处理更多资源。<br>顺序读写：Kafka消息不断追加到本地磁盘末尾，顺序读写利用页缓存提高性能<br>零拷贝：<br>原来的消息：磁盘-&gt;内核空间页缓存-&gt;用户空间kafka-&gt;内核空间socket缓冲区-&gt;网卡</p>
+<p>零拷贝：磁盘-&gt;内核空间页缓存-&gt;内核空间socket缓冲区-&gt;网卡</p>
+<p>不需要内核空间和用户空间拷贝，减少了用户态和内核态的切换。</p>
+<h1 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h1><h2 id="线程池参数与执行原理"><a href="#线程池参数与执行原理" class="headerlink" title="线程池参数与执行原理"></a>线程池参数与执行原理</h2><p>核心线程数，最大线程数，阻塞队列，临时线程存活时间和单位，线程工厂，饱和策略</p>
+<p>任务到来，如果当前工作线程是否到达核心线程数，如果不是，派发一条核心线程处理。如果核心线程都已经在工作：</p>
+<p>如果线程数小于最大线程数，则新建一条临时线程处理<br>如果线程数等于最大线程数，任务进阻塞队列</p>
+<p>阻塞队列也满了，触发饱和策略</p>
+<p>常见的饱和策略：</p>
+<p>直接返回异常，丢弃最早进队列的任务，使用调用者的线程执行，直接丢弃任务</p>
+<p>常见的阻塞队列：</p>
+<ul>
+<li>ArrayblokingQueue，有界的阻塞队列，底层用数组实现,FIFO.</li>
+<li>LinkedblokingQueue，无界的阻塞队列，底层用链表实现,FIFO。</li>
+<li>SynchronizedQueue，不保存元素，每一次插入操作都必须等取出操作才能</li>
+<li>运行DelayedworkQueue，优先级队列，保证每次出队的任务都是执行时间最靠前的</li>
+</ul>
+<h2 id="核心线程数"><a href="#核心线程数" class="headerlink" title="核心线程数"></a>核心线程数</h2><p>cpu密集型：N + 1<br>io密集型：2N + 1</p>
+<h2 id="Executor提供的几种线程池及其问题"><a href="#Executor提供的几种线程池及其问题" class="headerlink" title="Executor提供的几种线程池及其问题"></a>Executor提供的几种线程池及其问题</h2><ul>
+<li>固定线程池：核心&#x3D;最大</li>
+</ul>
+<p>问题：任务很多时，队列会不断存储任务，不触发饱和策略，容易直接OOM</p>
+<ul>
+<li><p>单线程池：核心&#x3D;最大&#x3D;1</p>
+</li>
+<li><p>缓存线程池：核心&#x3D;0，最大无限制，使用Synchronized队列，不存储元素，只使用临时线程处理任务</p>
+</li>
+</ul>
+<p>问题：临时线程数量不设置上限，容易oom</p>
+<ul>
+<li>延迟线程池：使用DelayWorkQueue，支持定时任务或者周期执行</li>
+</ul>
+<h2 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h2><p>1.7 以前，segment数组 + 数组+ 链表，锁加在段上<br>1.8：和HashMap类似，数组链表红黑树，锁加在node节点，粒度更细，并发度高</p>
+<h2 id="线程状态"><a href="#线程状态" class="headerlink" title="线程状态"></a>线程状态</h2><p>创建，就绪，执行，阻塞，等待，时间等待，终止</p>
+<p>获取锁失败，进入阻塞</p>
+<h1 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h1><h2 id="引用类型"><a href="#引用类型" class="headerlink" title="引用类型"></a>引用类型</h2><ul>
+<li>强引用</li>
+</ul>
+<p>GC时，即使内存不足，也会抛异常，不会清理</p>
+<ul>
+<li>软引用</li>
+</ul>
+<p>GC时，遇到内存不足，才会被清理</p>
+<ul>
+<li>弱引用</li>
+</ul>
+<p>GC时，只要检测到，无论内存是否充足，都会被清理</p>
+<ul>
+<li>虚引用</li>
+</ul>
+<p>必须和引用队列配合使用。用来通知引用的对象已经被垃圾回收了。</p>
+<h2 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h2><p>ThreadLocal提供线程局部变量，每个线程各自保存一个独立的变量副本。</p>
+<p>每个线程有一个ThreadLocalMap，key是ThreadLocal，value是保存的值。</p>
+<p>key是ThreadLocal弱引用。不能保证key不被回收。但value是强引用，不会被回收。如果出现key被回收（为null），则value不会被访问，出现了内存泄漏</p>
+<p>可以使用remove方法，移除掉value，避免内存泄漏</p>
+<h2 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a>内存模型</h2><p>线程私有：程序计数器，虚拟机栈，本地方法栈</p>
+<p>公有：堆，方法区</p>
+<p>直接内存由os直接管理</p>
+<p>栈内存如果过大，会使允许最大使用的线程数变少</p>
+<p>方法区是线程共享的区域，存放类信息，静态变量，静态方法，运行时常量池</p>
+<p>常量池是类信息的一张表，类被加载时，它的常量池会放到运行时常量池，并把符号引用转为直接引用。</p>
+<p>直接内存由OS直接管理，主要来作NIO缓冲区。无需拷贝到用户空间，可以直接使用。</p>
+<h2 id="类加载"><a href="#类加载" class="headerlink" title="类加载"></a>类加载</h2><p>类加载器负责把.class文件（二进制字节码）加载到JVM中</p>
+<p>启动类加载器，扩展类加载器，应用类加载器，自定义类加载器。</p>
+<p>加载-连接（验证，准备，解析）-初始化-使用-销毁</p>
+<p>准备：类中的静态变量分配内存，并设置默认值。final修饰的String常量或基本类型，这个阶段赋值。</p>
+<h2 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h2><ul>
+<li><p>标记-清除</p>
+</li>
+<li><p>复制</p>
+</li>
+<li><p>标记-整理<br>可用对象向一侧整理，多用于可用对象较多的区域，比如老年代。</p>
+</li>
+</ul>
+<p>分代回收：</p>
+<p>新生代（eden和survivor)，老年代</p>
+<p>先堆eden回收，如果存货，年龄+1，放入survivor，之后每经过一次GC，年龄+1.直到达到阈值15，进入老年代</p>
+<h2 id="CMS和-G1"><a href="#CMS和-G1" class="headerlink" title="CMS和 G1"></a>CMS和 G1</h2><p>CMS是标记-清除算法。针对老年代，追求最短停顿时间。<br>G1是复制算法，将堆内存分成若干个区域，每次根据停顿预期，选择优先级最大（存活对象最少）的一个区域进行回收</p>
+<blockquote>
+<p>分配空间：指针碰撞和空闲链表</p>
+</blockquote>
+<ul>
+<li>指针碰撞：适用于 堆空间是连续的（无碎片） 的情况</li>
+</ul>
+<p>使用一个 分配指针（Allocation Pointer） 记录当前可用的堆内存位置</p>
+<p>每次分配对象时，直接将指针向后移动 相应的大小（bump）</p>
+<p>速度快</p>
+<p>主要用于 复制（Copying）垃圾回收算法</p>
+<ul>
+<li>空闲链表</li>
+</ul>
+<p>空闲链表是一种 适用于堆内存存在碎片 的分配方式，它的原理</p>
+<p>维护一个 已释放内存块的链表，存储所有可用的空闲区域</p>
+<p>每次分配对象时，遍历链表查找适合的空闲块 进行分配（通常采用首次适应（First Fit）、最佳适应（Best Fit）等策略）</p>
+<p>由于空闲块可能大小不一，需要额外存储 每个块的大小信息 以及 指向下一个空闲块的指针</p>
+<p>实际上，每个空闲块内，采用的就是类似指针碰撞的分配方式</p>
+<h2 id="full-gc的原因"><a href="#full-gc的原因" class="headerlink" title="full gc的原因"></a>full gc的原因</h2><p>System.gc()</p>
+<p>老年代空间不足</p>
+<p>G1 垃圾回收器时，如果老年代被认为需要收集（尤其是在并行老年代垃圾回收期间），也会触发Full GC</p>
+<p>可能的问题：</p>
+<ul>
+<li><p>内存配置不足</p>
+</li>
+<li><p>内存泄漏</p>
+</li>
+</ul>
+<p>长时间存活对象不被使用</p>
+<p>大对象直接进入老年代，导致老年代内存不足</p>
+<ul>
+<li>jvm参数不合理</li>
+</ul>
+<p>-Xms, -Xmx设置堆大小</p>
+<p>堆内存过大，老年代可能过满；堆太小，年轻代满</p>
+<p>gc的线程数不够，gc太慢，积累很多对象，触发full gc</p>
+<h2 id="gc-root-有哪些"><a href="#gc-root-有哪些" class="headerlink" title="gc root 有哪些"></a>gc root 有哪些</h2><ul>
+<li>当前线程的栈帧中的局部变量</li>
+<li>静态变量（通常存储在方法区（或元空间）中）和类的常量池（类的信息（如 Class 对象））</li>
+<li>活跃的线程</li>
+<li>本地代码中通过 JNI（Java Native Interface） 保持的引用</li>
+<li>JVM中的类信息和常驻对象</li>
+</ul>
+<h1 id="linux"><a href="#linux" class="headerlink" title="linux"></a>linux</h1><h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><ul>
+<li><p>将 &#x2F;dev&#x2F;hda1 挂在 &#x2F;mnt 之下。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mount /dev/hda1 /mnt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看8080端口占用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano | grep 8080</span><br><span class="line"><span class="comment"># -a: all</span></span><br><span class="line"><span class="comment"># -t: tcp</span></span><br><span class="line"><span class="comment"># -u: udp</span></span><br><span class="line"><span class="comment"># -n: 显示数字</span></span><br><span class="line"><span class="comment"># -l: listen, 仅显示监听的</span></span><br><span class="line"><span class="comment"># -p: 显示进程 ID 和进程名称</span></span><br><span class="line"><span class="comment"># -r: 显示路由表</span></span><br><span class="line"><span class="comment"># -c: 每隔一段时间，执行netstat命令</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>根据PID查看连接</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">netstat -anp | grep 1234</span><br><span class="line">lsof -p 1234 -i</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>查看内存占用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">free -h</span><br><span class="line">top</span><br><span class="line">htop</span><br><span class="line">vmstat</span><br><span class="line"></span><br><span class="line"><span class="comment"># 这条命令会显示占用内存最多的前几个进程。</span></span><br><span class="line"><span class="comment"># a: 所有。不带a只显示当前用户的</span></span><br><span class="line"><span class="comment"># u: 显示所有进程的用户</span></span><br><span class="line"><span class="comment"># x: 显示后台运行的（没有终端的）进程</span></span><br><span class="line"><span class="comment"># %mem: 表示按照进程的内存占用百分比排序</span></span><br><span class="line"><span class="comment"># -: 在排序规则前加上负号，表示降序排序</span></span><br><span class="line"><span class="comment"># --sort=-%mem 使得进程按照内存使用百分比从高到低进行排序</span></span><br><span class="line"><span class="comment"># head: 默认情况下，head 会显示输入的前 10 行内容。</span></span><br><span class="line">ps aux --<span class="built_in">sort</span>=-%mem | <span class="built_in">head</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> /proc/meminfo</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看磁盘挂载</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -h 选项表示以人类可读的格式（例如，MB、GB）显示磁盘使用情况</span></span><br><span class="line"><span class="built_in">df</span> -h</span><br><span class="line"></span><br><span class="line"><span class="comment"># mount 命令用于查看当前系统上所有挂载的文件系统，包括磁盘、分区、网络共享等</span></span><br><span class="line">mount</span><br><span class="line"></span><br><span class="line"><span class="comment"># lsblk 命令列出系统上的所有块设备，包括磁盘、分区和挂载点。</span></span><br><span class="line">lsblk</span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/fstab 文件包含了系统启动时挂载的所有文件系统信息，可以查看文件系统的挂载配置。</span></span><br><span class="line"><span class="built_in">cat</span> /etc/fstab</span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li>权限类型，修改文件和目录权限</li>
+</ul>
+<p>权限：所有者（onwer），组（group），其他人（others）</p>
+<p>读（r），写（w），执行（x）</p>
+<p>查看权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -l filename</span><br></pre></td></tr></table></figure>
+
+<p>给所有用户添加执行权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x filename</span><br></pre></td></tr></table></figure>
+
+<p>设置权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 所有者读写执行，组和其他人读执行</span></span><br><span class="line"><span class="built_in">chmod</span> 755 filename</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>搜索日志关键字</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 这将输出所有包含 &quot;error&quot; 的日志行。</span></span><br><span class="line">grep <span class="string">&quot;error&quot;</span> /var/log/syslog</span><br><span class="line"><span class="comment"># 忽略大小写</span></span><br><span class="line">grep -i <span class="string">&quot;error&quot;</span> /var/log/syslog</span><br><span class="line"><span class="comment"># 显示行号</span></span><br><span class="line">grep -n <span class="string">&quot;error&quot;</span> /var/log/syslog</span><br><span class="line"><span class="comment"># 查询包含多个关键字</span></span><br><span class="line">grep -e <span class="string">&quot;error&quot;</span> -e <span class="string">&quot;failed&quot;</span> /var/log/syslog</span><br><span class="line"><span class="comment"># 查询多个日志文件</span></span><br><span class="line">grep <span class="string">&quot;failed&quot;</span> /var/log/syslog /var/log/auth.log</span><br><span class="line"><span class="comment"># 递归查找</span></span><br><span class="line">grep -r <span class="string">&quot;error&quot;</span> /var/log/</span><br><span class="line"><span class="comment"># 显示上下文</span></span><br><span class="line"><span class="comment"># -A（显示匹配行之后的 N 行）</span></span><br><span class="line"><span class="comment"># -B（显示匹配行之前的 N 行）</span></span><br><span class="line"><span class="comment"># -C（显示匹配行前后各 N 行）来做到这一点</span></span><br><span class="line">grep -A 3 <span class="string">&quot;error&quot;</span> /var/log/syslog</span><br><span class="line"><span class="comment"># 只显示匹配的文件名</span></span><br><span class="line">grep -l <span class="string">&quot;error&quot;</span> /var/log/*.<span class="built_in">log</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查询cpu利用率最高的进程</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux --<span class="built_in">sort</span>=-%cpu | <span class="built_in">head</span> -n 10</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看每个进程的cpu使用情况</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pidstat -u 1</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>每秒显示一次cpu的情况，显示3次</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sar -u 1 3</span><br></pre></td></tr></table></figure>
+
+<h1 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h1><h2 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">&lt;</span>窗口函数<span class="operator">&gt;</span> <span class="keyword">over</span> (<span class="keyword">partition</span> <span class="keyword">by</span> <span class="operator">&lt;</span>用于分组的列名<span class="operator">&gt;</span> <span class="keyword">order</span> <span class="keyword">by</span> <span class="operator">&lt;</span>用于排序的列名<span class="operator">&gt;</span> [<span class="keyword">rows</span> <span class="keyword">between</span> ?? <span class="keyword">and</span> ???])</span><br></pre></td></tr></table></figure>
+<p>窗口函数是对where或者group by子句处理后的结果进行操作，所以窗口函数原则上只能写在select子句中</p>
+<p>业务需求“在每组内排名”，比如：</p>
+<p>排名问题：每个部门按业绩来排名<br>topN问题：找出每个部门排名前N的员工进行奖励</p>
+<blockquote>
+<p>每个班级内按成绩排名</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select *, rank() over (partition by 班级  order by 成绩 desc) as rankingfrom 班级表</span><br></pre></td></tr></table></figure>
+
+<p>group by分组汇总后改变了表的行数，一行只有一个类别。而partiition by和rank函数不会减少原表中的行数</p>
+<ul>
+<li>rank函数</li>
+</ul>
+<p>如果有并列名次的行，会占用下一名次的位置。比如正常排名是1，2，3，4，但是现在前3名是并列的名次，结果是：1，1，1，4</p>
+<ul>
+<li>dense_rank函数</li>
+</ul>
+<p>这个例子中是5位，5位，5位，6位，也就是如果有并列名次的行，不占用下一名次的位置。比如正常排名是1，2，3，4，但是现在前3名是并列的名次，结果是：1，1，1，2</p>
+<ul>
+<li>row_number函数</li>
+</ul>
+<p>不考虑并列名次的情况。比如前3名是并列的名次，排名是正常的1，2，3，4</p>
+<blockquote>
+<p>给学生成绩按班级和分数排名，显示每个学生的排名</p>
+</blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    student_id,</span><br><span class="line">    student_name,</span><br><span class="line">    class_id,</span><br><span class="line">    score,</span><br><span class="line">    <span class="built_in">RANK</span>() <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> class_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> score <span class="keyword">DESC</span>) <span class="keyword">AS</span> rank</span><br><span class="line"><span class="keyword">FROM</span> students;</span><br></pre></td></tr></table></figure>
+<p>RANK() 为每个班级的学生根据成绩排序，分配排名。相同成绩的学生会分配相同的排名，但排名会跳过下一个数字</p>
+<blockquote>
+<p>计算每个班级学生的总成绩和平均成绩</p>
+</blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    student_id,</span><br><span class="line">    student_name,</span><br><span class="line">    class_id,</span><br><span class="line">    score,</span><br><span class="line">    <span class="built_in">SUM</span>(score) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> class_id) <span class="keyword">AS</span> class_total_score,</span><br><span class="line">    <span class="built_in">AVG</span>(score) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> class_id) <span class="keyword">AS</span> class_avg_score</span><br><span class="line"><span class="keyword">FROM</span> students;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>查询各科班级前三的同学信息</p>
+</blockquote>
+<p>students<br>student_id：学生ID<br>student_name：学生姓名<br>class_id：班级ID<br>subject_id：科目ID<br>score：成绩</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WITH</span> RankedStudents <span class="keyword">AS</span> (</span><br><span class="line">    <span class="keyword">SELECT</span> </span><br><span class="line">        student_id,</span><br><span class="line">        student_name,</span><br><span class="line">        class_id,</span><br><span class="line">        subject_id,</span><br><span class="line">        score,</span><br><span class="line">        <span class="built_in">ROW_NUMBER</span>() <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> class_id, subject_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> score <span class="keyword">DESC</span>) <span class="keyword">AS</span> rank</span><br><span class="line">    <span class="keyword">FROM</span> students</span><br><span class="line">)</span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    student_id,</span><br><span class="line">    student_name,</span><br><span class="line">    class_id,</span><br><span class="line">    subject_id,</span><br><span class="line">    score</span><br><span class="line"><span class="keyword">FROM</span> RankedStudents</span><br><span class="line"><span class="keyword">WHERE</span> rank <span class="operator">&lt;=</span> <span class="number">3</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> class_id, subject_id, rank;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="策略模式"><a href="#策略模式" class="headerlink" title="策略模式"></a>策略模式</h3><p>HandlerMethodArgumentResolver 是一个接口，负责为控制器方法的参数提供解析方案。Spring MVC 提供了一些默认的参数解析器，例如 RequestParamMethodArgumentResolver</p>
+<p>用户也可以自定义 HandlerMethodArgumentResolver 实现，来为自定义类型或特定需求的参数提供解析策略</p>
+<h3 id="模板方法"><a href="#模板方法" class="headerlink" title="模板方法"></a>模板方法</h3><p>HandlerMethodArgumentResolver 是一种可以扩展的基类，它提供了参数解析的基本框架（模板），而具体的解析逻辑由子类实现。</p>
+<h3 id="解耦"><a href="#解耦" class="headerlink" title="解耦"></a>解耦</h3><p>各种类型的参数的解析：不需要管来源</p>
+<h3 id="责任链"><a href="#责任链" class="headerlink" title="责任链"></a>责任链</h3><p>RequestParamMethodArgumentResolver、PathVariableMethodArgumentResolver等链式解析</p>
+<h1 id="项目-mini-bilibili"><a href="#项目-mini-bilibili" class="headerlink" title="项目-mini-bilibili"></a>项目-mini-bilibili</h1><h2 id="登录和校验"><a href="#登录和校验" class="headerlink" title="登录和校验"></a>登录和校验</h2><p>登录状态的校验是绝大多数的请求执行前需要完成的校验，需要根据用户权限进行拦截。</p>
+<ul>
+<li>登录</li>
+</ul>
+<p>首先登录怎么处理：</p>
+<p>密码是md5加密后存到数据库的。用户登录，将密码传送过来，加密后和数据库对比，一致则登录成功，并且返回一段token。这个token包含有效期。</p>
+<p>然后返回给浏览器。前端收到这个信息，缓存这个token，以后的所有请求，都携带这个token即可</p>
+<ul>
+<li>校验</li>
+</ul>
+<p>然后不同的服务器就可以根据是否携带token，来判断是否登录，并赋予相应的权限。</p>
+<p>因为这个token是可以包含有效期的，服务端可以校验是否过期，如果过期，返回401，跳转到登录。</p>
+<ul>
+<li>双token优化</li>
+</ul>
+<p>问题在于：如果过期时间太长，不够安全；太短则频繁登录。</p>
+<p>这里设置两个token，一个有效期短，accessToken，一个有效期长refreshToken。当检测到accessToken过期，会利用有效的refreshToken刷新一个新的accessToken</p>
+<p>好处是，accessToken有效期较短，即使被盗取，攻击者能利用的时间窗口也有限</p>
+<p>当访问Token过期时，用户可以通过刷新Token来获取新的访问Token，而不需要重新登录</p>
+<ul>
+<li>AOP&#x2F;网关拦截</li>
+</ul>
+<p>由于校验操作是几乎每个服务都要执行的，因此可以考虑采用AOP的方式进行拦截。</p>
+<p>这里我的方案则是放到网关层统一处理，利用Filter过滤器进行拦截。</p>
+<h2 id="文件分块上传"><a href="#文件分块上传" class="headerlink" title="文件分块上传"></a>文件分块上传</h2><p>大文件上传问题</p>
+<p>一个视频可能很大，上传服务器的时间可能较长。考虑上传过程中发生断网，网络不稳定，导致传输失败，那么我们可能需要重新传输整个大文件。为了解决这个问题，提高传输效率，采用分段传输，端点上传机制。</p>
+<p>首先，明确一下，文件是由本地上传到minio服务器</p>
+<p>流程：</p>
+<p>1、确认上传任务，token：</p>
+<p>前端计算出文件的md5值，这个信息上传给web服务器，由服务器创建上传任务。用id进行区分</p>
+<p>返回内容：任务编号，分块的状态。</p>
+<p>前端根据返回结果，进行处理：</p>
+<p>对文件进行分块，对于每个分块：</p>
+<p>发送（任务id,分块号），向服务端请求预前面URL，这个URL服务端向minio服务器申请。并返回给前端</p>
+<p>前端使用这个预签名，直接将文件上传给minio服务器，不需要再经过web服务器。minio服务器返回结果。</p>
+<p>当前端发现所有分块已经上传成功，向服务端发起合并请求（任务ID），服务端向minio检测并发起合并请求，合并分块。</p>
+<p>这样即使中间断网，或者某些分块没有上传成功，显示失败，用户再次发起上传请求时，实际上。只需要重新上传对应的分块即可。而这些分块上传的状态都在数据库中保存。分块也可以并发上传。</p>
+<h2 id="搜索"><a href="#搜索" class="headerlink" title="搜索"></a>搜索</h2><blockquote>
+<p>视频搜索为什么要用es</p>
+</blockquote>
+<p>视频是需要长久保存的，视频文件放minio，视频信息（视频URL，标题，简介，作者编号等）放数据库，MySQL，这没什么问题。问题在于搜索的时候不是很方便。因为我们B站搜视频，往往会输入关键字，或者作者，它往往是视频的标题的部分内容，因为我们很难记得视频完整的标题是什么。</p>
+<p>如果只使用MySQL，那么对视频名称，或者间接字段加索引，类型是字符串。一方面，字符串它长度比较长，索引效率不算很高；另一方面，字符串的排序规则，是按照ascii码逐个排序，也就是只能支持前缀，也就是最左匹配。我们需要模糊匹配中间，或者结尾，任意地方的子字符串，只能全局的搜索了，那效率会非常的低</p>
+<p>ES采用了倒排索引。一般我们是索引出来的编号，去找内容。ES是这样的，一个文档，先用分词工具进行分词，分成很多个比较常见的词语，然后，记录这些词语到文档id的这样一个映射表。再对这些词进行排序。这样我们搜索时，就搜索这些词就行了。同样涉及字符串排序，ES是把长字符串中，常见的词都抽取出来，我们只需要匹配其中一个词就行。而MySQL的模糊匹配，如果想利用索引，只能最左匹配。</p>
+<blockquote>
+<p>es和MySQL怎么保持同步</p>
+</blockquote>
+<p>分全量和增量。简单的方法是，新建一个es结点，先把MySQL中的数据，批量导入。之后，用户上传或者删除视频，先修改MySQL，再改es即可。由于一般不会发生太多人同时上传视频的情况，一般情况可以应对。但如果考虑得更完善，可以利用数据库的日志：利用订阅binlog的方式更新ES。</p>
+<h2 id="点赞系统"><a href="#点赞系统" class="headerlink" title="点赞系统"></a>点赞系统</h2><p>点赞系统，是有一定的并发压力的。可能很多人同时点赞。</p>
+<p>直接放redis其实也是一种思路。我这里设计的时候，还是先用MySQL数据库存储点赞的信息。</p>
+<p>如果直接操作MySQL, 并发量吃不消。给用户的体验也不好。因为我们对视频点赞，点赞成功后，我们的预期是前端显示的点赞数量增加，且标记你已经点赞了改视频。对于压力较大的情况，我们采用消息队列来处理：点赞消息交给Kafka, Kafka再发送给相应的模块处理。相当于一个异步的处理。</p>
+<p>对于异步任务，前端什么时候刷新呢，这里采用websocket的机制。每当需要异步任务，会随机生成一个sessionId和taskId, 注册到websocket会话管理器。当服务端处理完成后，向会话管理器发送消息，然后就会执行注册的回调函数，刷新界面，重新读取。</p>
+<p>实际上，这里在单机的情况下，效果可能不是很明显。实际部署的时候，可以部署到多台机器上，每台服务器管理若干视频，处理相应的点赞消息，减少压力。实际上就是水平分表。</p>
+<p>直接使用redis也行。</p>
+<h3 id="websocket底层原理"><a href="#websocket底层原理" class="headerlink" title="websocket底层原理"></a>websocket底层原理</h3><p>单个 TCP 连接上进行全双工通信的协议，允许客户端和服务器之间实时、双向地传输数据</p>
+<p>WebSocket 连接始于一个 HTTP 握手请求，客户端通过发送一个带有 Upgrade 头的 HTTP 请求来请求升级协议。服务器若支持 WebSocket，则返回一个带有 Upgrade 头的 HTTP 响应，完成握手</p>
+<p>握手完成后，通信通过数据帧进行。WebSocket 帧由头部和负载组成，头部包含操作码、掩码、负载长度等信息，负载则是实际传输的数据。</p>
+<p>通过 Ping 和 Pong 帧维持连接，Ping 帧由一端发送，另一端需回复 Pong 帧。</p>
+<p>通过发送关闭帧（Opcode 为 0x8）来终止连接，双方在收到关闭帧后关闭 TCP 连接</p>
+<blockquote>
+<p>协议优势</p>
+</blockquote>
+<ul>
+<li><p>低延迟：相比 HTTP 轮询，WebSocket 减少了不必要的请求头和数据传输。</p>
+</li>
+<li><p>高效：通过长连接和二进制帧传输，减少了通信开销。</p>
+</li>
+<li><p>实时性：支持服务器主动推送数据，适合实时应用。</p>
+</li>
+</ul>
+<h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>这里也用到了redis，主要用于缓存信息。缓存用户信息</p>
+<p>仿B站系统，除了视频，还有基本的用户信息管理，用户也可以修改。但每次显示都差数据库，效率不高，因此把展示的信息缓存到redis，而每次更新的时候，更新完数据库，删除缓存，等下次读的时候再刷到缓存，也就是一个旁路缓存的策略。可以一定程度地减少压力，提高性能。</p>
+<h1 id="工作相关"><a href="#工作相关" class="headerlink" title="工作相关"></a>工作相关</h1><h2 id="工作内容"><a href="#工作内容" class="headerlink" title="工作内容"></a>工作内容</h2><p>枪球机型，双通道，添加常见模式，就是允许设置不同的参数</p>
+<p>具体来说的功能：定时切换，预置点切换，手动设置。</p>
+<p>请求统一发送给枪机，根据通道号，转发给球机进行处理。涉及到报文的一个处理。用的RTSP报文协议。</p>
+<h2 id="最大的困难"><a href="#最大的困难" class="headerlink" title="最大的困难"></a>最大的困难</h2><p>框架。C语言各种宏套宏，一点错，编译直接全屏错。<br>配置文件非常多。先运行起来，再改一点，观察到哪里发生了变化</p>
+<p>调错：崩溃，复现。在嵌入式系统上调错比较麻烦，一般是print大法，或者把生成的core拿出来，在linux上调试。</p>
+<h2 id="项目深度-工作量"><a href="#项目深度-工作量" class="headerlink" title="项目深度&#x2F;工作量"></a>项目深度&#x2F;工作量</h2><ul>
+<li><p>断点上传</p>
+</li>
+<li><p>mini-spring，我实际上先写Tomcat，看了大概怎么写，就是要实现很多的接口，一点点查阅文档，了解其内涵。里面很多内容，包括一个Filter的实现是比较有意思的。tomcat, 包括我仿写的这个服务器，都是要求满足一些接口。而我们的比如HttpRequest，是接口，要求我们自己实现的，很多时候，是先写一个实现类，然后用包装类封装才行。因为比方说ServletConfig，DispatcherServlet，它实际上会调用init方法，config通过这个方法传入，实际上相当于使用了模板方法的设计模式，来实现这个系统。</p>
+</li>
+</ul>
+<p>很多系统，像你要实现功能可能随便写就行，但像Tomcat这种，你是要实现一些接口，限制还是比较多的，有一些规则你要遵循，有一些模板你可以使用。我觉得这更接近实际的开发过程。</p>
+<h2 id="最近有看哪些技术书籍-项目"><a href="#最近有看哪些技术书籍-项目" class="headerlink" title="最近有看哪些技术书籍&#x2F;项目"></a>最近有看哪些技术书籍&#x2F;项目</h2><p>ES源码？</p>
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><h2 id="设计一个缓存系统"><a href="#设计一个缓存系统" class="headerlink" title="设计一个缓存系统"></a>设计一个缓存系统</h2><p>高可用，故障恢复</p>
+<p>更新，失效</p>
+<h1 id="自我介绍"><a href="#自我介绍" class="headerlink" title="自我介绍"></a>自我介绍</h1><p>面试官好，我叫刘京龙，中科大软件学院研一。本科南京大学，毕业先去工作，当时学习的是Java但是被分到嵌入式，考虑到技术方向和个人职业发展，还是倾向Java后端，所以来科软，进一步学习，并想通过实习积累相关经验。掌握的技术栈就是计算机基础，java，数据库这些内容。</p>
+<h1 id="项目-mini-spring（含mini-tomcat）"><a href="#项目-mini-spring（含mini-tomcat）" class="headerlink" title="项目-mini-spring（含mini-tomcat）"></a>项目-mini-spring（含mini-tomcat）</h1><h2 id="BeanDefiniation-有哪些字段"><a href="#BeanDefiniation-有哪些字段" class="headerlink" title="BeanDefiniation 有哪些字段"></a>BeanDefiniation 有哪些字段</h2><p>name, beanClass对象，实例对象instance, 构造器Constructor，工厂名factory，工厂方法FactoryMethod，initMethod, destroyMethod,以及对应的methodName</p>
+<p>在Context中，用一个HashMap存放BeanDefiniation</p>
+<h2 id="context-启动过程"><a href="#context-启动过程" class="headerlink" title="context 启动过程"></a>context 启动过程</h2><ul>
+<li>扫描className</li>
+</ul>
+<p>扫描所有的指定包下的类，如果扫到ComponentScan注解，再添加相应的包名</p>
+<p>扫描这些包，包括Import的包，把所有的className加入一个set</p>
+<p>再根据这些className，用类加载器load，加载出对应的Class，<br>判断这些Class是否被Component注解修饰，如果有，说明是一个bean，应该被加入容器管理</p>
+<ul>
+<li>创建BeandDefiniation</li>
+</ul>
+<p>创建对应的Beandefiniation。同时，根据注解获得可能的PostConstruct等方法</p>
+<p>另外如果有Configuration注解，说明是一个工厂，那么，扫描里面的方法，也就是工厂方法，如果某方法有Bean注解，那么也是一个Bean，创建对应的BeanDefiniation</p>
+<ul>
+<li>创建早期的实例</li>
+</ul>
+<p>创建实例，但不进行字段和方法级别的注入。</p>
+<p>先创建@Configuration类型的Bean</p>
+<p>再创建BeanPostProcessor类型的Bean</p>
+<p>最后创建其他普通Bean</p>
+<p>如果创建的Bean不是Configuration或BeanPostProcessor，则在构造方法中注入的依赖Bean会自动创建。</p>
+<p>根据前面的BeanDefiniation信息，直到了创建Bean的工厂方法和参数，可以创建早期的Bean</p>
+<p>没工厂方法，用构造方法</p>
+<p>如果涉及到依赖问题，如果依赖的Bean没有进行这一步初始化，先初始化。</p>
+<p>然后调用beanPostProcessors处理bean</p>
+<ul>
+<li>注入字段</li>
+</ul>
+<p>前面的字段还没注入，所以需要注入字段和依赖</p>
+<p>如有，Bean先被PostProcessor处理</p>
+<p>也就是根据我们平时用的，@Resource,@Autowire, @Value注解，去搜索Bean，进行注入。<br>Resource先按name, autowire先按type, value按照yaml读取的属性</p>
+<ul>
+<li>init</li>
+</ul>
+<p>如果有，最后调用init方法，也就是Bean注解的一个属性<br>@Bean(initMethod&#x3D;…)</p>
+<h2 id="描述你的spring-boot-web应用启动过程"><a href="#描述你的spring-boot-web应用启动过程" class="headerlink" title="描述你的spring-boot web应用启动过程"></a>描述你的spring-boot web应用启动过程</h2><p>DispatcherServlet</p>
+<p>1、框架：模板方法</p>
+<blockquote>
+<p>context中找webServerFactory</p>
+</blockquote>
+<p>生成Bean容器ApplicationContext</p>
+<p>扫描包，将所有的Bean注册好，不包括dispatcherServlet</p>
+<p>包括可能的ServletWebServerFactory</p>
+<p>根据类型找ServletWebServerFactory，找不到就当普通的spring，没有web服务器的。找到了，执行runWebServer，进入下一阶段</p>
+<blockquote>
+<p>创建dispatcherServlet，绑定容器context</p>
+</blockquote>
+<p>根据（写死的）className，利用构造方法反射创建对象。参数是context容器，因为后面要找bean。</p>
+<blockquote>
+<p>dispatcherServlet注册给servletContext</p>
+</blockquote>
+<p>我们知道，jerry-mouse或者说tomcat, 会创建一个servletContext就是servlet容器，dispatcherServlet需要注册进去。问题是现在我们没有servletContext, 怎么办？factory.getWebserver创建webserver。</p>
+<p>这个接口它的参数是一个数组，类型是ServletContextInitializer，实际上就是一个函数式接口，里面有一个onStartUp接口，参数是context，也就是对servletContext做一些后置操作。前面讲的context是spring的容器，存放bean; 这个servletContext是服务器（jerry-mouse）的servlet容器</p>
+<p>这个servlet容器，注册是事情，就是要让他用addServlet方法，动态加uDispatcherServlet。这里只是add，没有注册，因为接口没有这个方法，webserver实现类中才有。</p>
+<p>到这一步，dispatcherServlet已经被创建，并通过addServlet，动态加入到servletContext</p>
+<blockquote>
+<p>webserver.start()启动</p>
+</blockquote>
+<p>webserver.start()启动，这是接口。</p>
+<p>实现方式，就是servletContext中拿到dispatcherServlet，然后需要匹配所有的路径，执行注册这个dispatcherServlet，让所有的路径，都交给这个Servlet进行处理.</p>
+<p>然后创建一个包装的servletConfig, 执行init方法 。</p>
+<blockquote>
+<p>init</p>
+</blockquote>
+<p>然后执行init方法，这又是模板方法，因为DispatcherServlet是HttpServlet的子类。重写init()即可，注册就在这一步完成。</p>
+<p>到此，解决的问题</p>
+<ul>
+<li>启动</li>
+<li>dispatcherServlet注册给jerry-mouse</li>
+<li>dispatcherServlet拿到spring的context</li>
+<li>请求通过jerry-mouse交给dispatcherServlet</li>
+</ul>
+<blockquote>
+<p>一个请求过来，怎么交给controller，怎么交给method处理</p>
+</blockquote>
+<p>jerry-mouse服务器，会执行servlet的service()方法，参数是request, response。实际上就是通过报文解析得到的request，可以通过request的接口，得到方法(GET, POST), URI, body这些数据，也就是报文的内容。</p>
+<p>那dispatcher负责分发，那肯定要预处理，进行注册</p>
+<blockquote>
+<p>注册</p>
+</blockquote>
+<p>我们知道了，dispatcherServlet可以拿到spring的context, 那么，根据类型查找RestController，找到所有的BeanDefination，然后对于每个RestController，遍历它的方法，看下是否是public，以及有没有GetMapping或者PostMapping接口。有的话，继续处理</p>
+<p>将 request方法，bean，method信息，path打包注册，交给MethodHandler注册，也就是注册到一个map里面。</p>
+<blockquote>
+<p>HTTP请求</p>
+</blockquote>
+<p>对于一个HTTP请求，根据url, 解析method，路径，匹配到对应的Bean和method。这里需要处理的是，路径可能有PathVariable。所以匹配方法会比较麻烦。找到后，就锁定了方法了。下面的问题是，方法的参数是怎么定的</p>
+<blockquote>
+<p>restcontroller中，方法的参数是怎么定的</p>
+</blockquote>
+<p>我们平时写springboot应用，一个controller,一些方法，有的参数有注解，像PathVariable, RequestParam, RequestBody，RequestHeader，RequestAttribute，SessionAttribute; 还有一些没有参数，但是类型是HttpRequest,HttpResponse, HttpSession等。它怎么来的问题。</p>
+<p>都是request变来的。只要对于方法的每个参数，依次判断是否有注解，如果有，依次处理；没有，则判断是否是那几个类型，有的话，用request或者response的相关内容给它即可。这一块内容的处理也用了策略模式，在dispatcherServlet创建的时候就注册了相应的map</p>
+<blockquote>
+<p>总结</p>
+</blockquote>
+<p>所以，实际上，springmvc就是dispatcherServlet这一个servlet，在执行service()方法罢了，所有的参数，各种注解，都是从request，response里面来的。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io">liujinglong</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io/2025/02/07/bagu/">https://jinglong-liu.github.io/2025/02/07/bagu/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jinglong-liu.github.io" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2025/03/06/golang-select/" title="golang基础篇（一）：goroutine, channels, select"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">golang基础篇（一）：goroutine, channels, select</div></div></a></div><div class="next-post pull-right"><a href="/2025/02/03/lock-2/" title="Java 锁 （二）AQS"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Java 锁 （二）AQS</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/09/10/build-open-jdk/" title="build-open-jdk"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-10</div><div class="title">build-open-jdk</div></div></a></div><div><a href="/2025/02/03/lock-1/" title="Java 锁 （一）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-03</div><div class="title">Java 锁 （一）</div></div></a></div><div><a href="/2024/08/16/spring-aop-dynamic-proxy/" title="spring-aop 与 动态代理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-16</div><div class="title">spring-aop 与 动态代理</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liujinglong</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis"><span class="toc-number">1.</span> <span class="toc-text">Redis</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#redis-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">1.1.</span> <span class="toc-text">redis 客户端</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#redis-%E9%9B%86%E7%BE%A4"><span class="toc-number">1.2.</span> <span class="toc-text">redis 集群</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5"><span class="toc-number">1.3.</span> <span class="toc-text">redis 主从同步</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MySQL"><span class="toc-number">2.</span> <span class="toc-text">MySQL</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%A5%E5%BF%97"><span class="toc-number">2.1.</span> <span class="toc-text">日志</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B6%85%E5%A4%A7%E5%88%86%E9%A1%B5"><span class="toc-number">2.2.</span> <span class="toc-text">超大分页</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5"><span class="toc-number">2.3.</span> <span class="toc-text">MySQL 主从同步</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8"><span class="toc-number">2.4.</span> <span class="toc-text">分库分表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#join%E6%93%8D%E4%BD%9C%EF%BC%8C%E6%80%A7%E8%83%BD%E7%BC%BA%E7%82%B9"><span class="toc-number">2.5.</span> <span class="toc-text">join操作，性能缺点</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">分布式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="toc-number">3.1.</span> <span class="toc-text">Redis 分布式锁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CAP-%E5%92%8C-BASE"><span class="toc-number">3.2.</span> <span class="toc-text">CAP 和 BASE</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E6%9C%8D%E5%8A%A1-%E6%8E%A5%E5%8F%A3%E5%B9%82%E7%AD%89%E6%80%A7"><span class="toc-number">3.3.</span> <span class="toc-text">分布式服务 接口幂等性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Raft"><span class="toc-number">3.4.</span> <span class="toc-text">Raft</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%90%E6%B5%81"><span class="toc-number">3.5.</span> <span class="toc-text">限流</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%99%90%E6%B5%81-%E4%BB%A4%E7%89%8C%E6%A1%B6"><span class="toc-number">3.5.1.</span> <span class="toc-text">限流 令牌桶</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%99%90%E6%B5%81-%E6%BC%8F%E6%96%97%E7%AE%97%E6%B3%95%EF%BC%88Leaky-Bucket%EF%BC%89"><span class="toc-number">3.5.2.</span> <span class="toc-text">限流 漏斗算法（Leaky Bucket）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%EF%BC%9Aredis-%E9%99%90%E6%B5%81"><span class="toc-number">3.5.3.</span> <span class="toc-text">实现：redis 限流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%86%94%E6%96%AD-%E9%99%8D%E7%BA%A7"><span class="toc-number">3.6.</span> <span class="toc-text">熔断 降级</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MQ"><span class="toc-number">4.</span> <span class="toc-text">MQ</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Kafka-%E6%B6%88%E6%81%AF%E4%B8%A2%E5%A4%B1"><span class="toc-number">4.1.</span> <span class="toc-text">Kafka 消息丢失</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Kafka-%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9"><span class="toc-number">4.2.</span> <span class="toc-text">Kafka 重复消费</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Kafka-%E6%95%B0%E6%8D%AE%E6%B8%85%E7%90%86"><span class="toc-number">4.3.</span> <span class="toc-text">Kafka 数据清理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Kafka-%E9%AB%98%E6%80%A7%E8%83%BD"><span class="toc-number">4.4.</span> <span class="toc-text">Kafka 高性能</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">多线程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8F%82%E6%95%B0%E4%B8%8E%E6%89%A7%E8%A1%8C%E5%8E%9F%E7%90%86"><span class="toc-number">5.1.</span> <span class="toc-text">线程池参数与执行原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BA%BF%E7%A8%8B%E6%95%B0"><span class="toc-number">5.2.</span> <span class="toc-text">核心线程数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Executor%E6%8F%90%E4%BE%9B%E7%9A%84%E5%87%A0%E7%A7%8D%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8F%8A%E5%85%B6%E9%97%AE%E9%A2%98"><span class="toc-number">5.3.</span> <span class="toc-text">Executor提供的几种线程池及其问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ConcurrentHashMap"><span class="toc-number">5.4.</span> <span class="toc-text">ConcurrentHashMap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81"><span class="toc-number">5.5.</span> <span class="toc-text">线程状态</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#JVM"><span class="toc-number">6.</span> <span class="toc-text">JVM</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B"><span class="toc-number">6.1.</span> <span class="toc-text">引用类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ThreadLocal"><span class="toc-number">6.2.</span> <span class="toc-text">ThreadLocal</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.3.</span> <span class="toc-text">内存模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD"><span class="toc-number">6.4.</span> <span class="toc-text">类加载</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="toc-number">6.5.</span> <span class="toc-text">垃圾回收</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CMS%E5%92%8C-G1"><span class="toc-number">6.6.</span> <span class="toc-text">CMS和 G1</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#full-gc%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="toc-number">6.7.</span> <span class="toc-text">full gc的原因</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gc-root-%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-number">6.8.</span> <span class="toc-text">gc root 有哪些</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#linux"><span class="toc-number">7.</span> <span class="toc-text">linux</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="toc-number">7.1.</span> <span class="toc-text">基本命令</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SQL"><span class="toc-number">8.</span> <span class="toc-text">SQL</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0"><span class="toc-number">8.1.</span> <span class="toc-text">窗口函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F"><span class="toc-number">8.1.1.</span> <span class="toc-text">策略模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%9D%BF%E6%96%B9%E6%B3%95"><span class="toc-number">8.1.2.</span> <span class="toc-text">模板方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E8%80%A6"><span class="toc-number">8.1.3.</span> <span class="toc-text">解耦</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B4%A3%E4%BB%BB%E9%93%BE"><span class="toc-number">8.1.4.</span> <span class="toc-text">责任链</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE-mini-bilibili"><span class="toc-number">9.</span> <span class="toc-text">项目-mini-bilibili</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%99%BB%E5%BD%95%E5%92%8C%E6%A0%A1%E9%AA%8C"><span class="toc-number">9.1.</span> <span class="toc-text">登录和校验</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E5%88%86%E5%9D%97%E4%B8%8A%E4%BC%A0"><span class="toc-number">9.2.</span> <span class="toc-text">文件分块上传</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%9C%E7%B4%A2"><span class="toc-number">9.3.</span> <span class="toc-text">搜索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%82%B9%E8%B5%9E%E7%B3%BB%E7%BB%9F"><span class="toc-number">9.4.</span> <span class="toc-text">点赞系统</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#websocket%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86"><span class="toc-number">9.4.1.</span> <span class="toc-text">websocket底层原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%93%E5%AD%98"><span class="toc-number">9.5.</span> <span class="toc-text">缓存</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E7%9B%B8%E5%85%B3"><span class="toc-number">10.</span> <span class="toc-text">工作相关</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%86%85%E5%AE%B9"><span class="toc-number">10.1.</span> <span class="toc-text">工作内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%A4%A7%E7%9A%84%E5%9B%B0%E9%9A%BE"><span class="toc-number">10.2.</span> <span class="toc-text">最大的困难</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E6%B7%B1%E5%BA%A6-%E5%B7%A5%E4%BD%9C%E9%87%8F"><span class="toc-number">10.3.</span> <span class="toc-text">项目深度&#x2F;工作量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E8%BF%91%E6%9C%89%E7%9C%8B%E5%93%AA%E4%BA%9B%E6%8A%80%E6%9C%AF%E4%B9%A6%E7%B1%8D-%E9%A1%B9%E7%9B%AE"><span class="toc-number">10.4.</span> <span class="toc-text">最近有看哪些技术书籍&#x2F;项目</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B6%E4%BB%96"><span class="toc-number">11.</span> <span class="toc-text">其他</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E7%BC%93%E5%AD%98%E7%B3%BB%E7%BB%9F"><span class="toc-number">11.1.</span> <span class="toc-text">设计一个缓存系统</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%87%AA%E6%88%91%E4%BB%8B%E7%BB%8D"><span class="toc-number">12.</span> <span class="toc-text">自我介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE-mini-spring%EF%BC%88%E5%90%ABmini-tomcat%EF%BC%89"><span class="toc-number">13.</span> <span class="toc-text">项目-mini-spring（含mini-tomcat）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#BeanDefiniation-%E6%9C%89%E5%93%AA%E4%BA%9B%E5%AD%97%E6%AE%B5"><span class="toc-number">13.1.</span> <span class="toc-text">BeanDefiniation 有哪些字段</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#context-%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B"><span class="toc-number">13.2.</span> <span class="toc-text">context 启动过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0%E4%BD%A0%E7%9A%84spring-boot-web%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B"><span class="toc-number">13.3.</span> <span class="toc-text">描述你的spring-boot web应用启动过程</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/06/golang-select/" title="golang基础篇（一）：goroutine, channels, select">golang基础篇（一）：goroutine, channels, select</a><time datetime="2025-03-06T00:19:46.000Z" title="发表于 2025-03-06 08:19:46">2025-03-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/07/bagu/" title="八股复习1">八股复习1</a><time datetime="2025-02-07T04:16:26.000Z" title="发表于 2025-02-07 12:16:26">2025-02-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/03/lock-2/" title="Java 锁 （二）AQS">Java 锁 （二）AQS</a><time datetime="2025-02-03T10:29:22.000Z" title="发表于 2025-02-03 18:29:22">2025-02-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/03/lock-1/" title="Java 锁 （一）">Java 锁 （一）</a><time datetime="2025-02-03T09:24:42.000Z" title="发表于 2025-02-03 17:24:42">2025-02-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/04/ba-gu-training-KamaCoder11/" title="ba-gu-training-KamaCoder11">ba-gu-training-KamaCoder11</a><time datetime="2024-12-04T04:25:28.000Z" title="发表于 2024-12-04 12:25:28">2024-12-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By liujinglong</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b2"></script><script src="/js/main.js?v=4.14.0-b2"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = (ele) => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from(ele).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+    
+    codeMermaidEle.forEach(ele => {
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.innerHTML = `<pre class="mermaid-src" hidden>${ele.textContent}</pre>`
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+  
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const initValine = () => {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: '4JE6J6Fimc9mBF9PTJvsX6P2-gzGzoHsz',
+      appKey: '0F61JyHXoFJLYMGMy6p9aZhN',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: true
+    }, null))
+  }
+
+  const loadValine = async () => {
+    if (typeof Valine === 'function') initValine()
+    else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine@1.5.1/dist/Valine.min.js')
+      initValine()
+    }
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>golang基础篇（一）：goroutine, channels, select | Hexo</title><meta name="author" content="liujinglong"><meta name="copyright" content="liujinglong"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本篇学习golang语言基础：并发，分析goroutine, channels, select, sync.Mutex的作用，并给出实例，帮入门学习 goroutineGo 中的并发执行单位，类似于轻量级的线程。Goroutine 的调度由 Go 运行时管理，用户无需手动分配线程。使用 go 关键字启动 Goroutine。Goroutine 是非阻塞的，可以高效地运行成千上万个 Goroutin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="golang基础篇（一）：goroutine, channels, select">
+<meta property="og:url" content="https://jinglong-liu.github.io/2025/03/06/golang-select/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本篇学习golang语言基础：并发，分析goroutine, channels, select, sync.Mutex的作用，并给出实例，帮入门学习 goroutineGo 中的并发执行单位，类似于轻量级的线程。Goroutine 的调度由 Go 运行时管理，用户无需手动分配线程。使用 go 关键字启动 Goroutine。Goroutine 是非阻塞的，可以高效地运行成千上万个 Goroutin">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2025-03-06T00:19:46.000Z">
+<meta property="article:modified_time" content="2025-03-06T06:15:25.895Z">
+<meta property="article:author" content="liujinglong">
+<meta property="article:tag" content="golang">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jinglong-liu.github.io/2025/03/06/golang-select/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.14.0-b2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>(()=>{
+      const saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+      
+      window.btf = {
+        saveToLocal: saveToLocal,
+        getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = url
+          script.async = true
+          script.onerror = reject
+          script.onload = script.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            script.onload = script.onreadystatechange = null
+            resolve()
+          }
+
+          Object.keys(attr).forEach(key => {
+            script.setAttribute(key, attr[key])
+          })
+
+          document.head.appendChild(script)
+        }),
+
+        getCSS: (url, id = false) => new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          if (id) link.id = id
+          link.onerror = reject
+          link.onload = link.onreadystatechange = function() {
+            const loadState = this.readyState
+            if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+            link.onload = link.onreadystatechange = null
+            resolve()
+          }
+          document.head.appendChild(link)
+        }),
+
+        addGlobalFn: (key, fn, name = false, parent = window) => {
+          const pjaxEnable = false
+          if (!pjaxEnable && key.startsWith('pjax')) return
+
+          const globalFn = parent.globalFn || {}
+          const keyObj = globalFn[key] || {}
+    
+          if (name && keyObj[name]) return
+    
+          name = name || Object.keys(keyObj).length
+          keyObj[name] = fn
+          globalFn[key] = keyObj
+          parent.globalFn = globalFn
+        }
+      }
+    
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+      
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })()</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'golang基础篇（一）：goroutine, channels, select',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-03-06 14:15:25'
+}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">golang基础篇（一）：goroutine, channels, select</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-03-06T00:19:46.000Z" title="发表于 2025-03-06 08:19:46">2025-03-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-06T06:15:25.895Z" title="更新于 2025-03-06 14:15:25">2025-03-06</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="leancloud_visitors" id="/2025/03/06/golang-select/" data-flag-title="golang基础篇（一）：goroutine, channels, select"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span class="leancloud-visitors-count"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>本篇学习golang语言基础：并发，分析goroutine, channels, select, sync.Mutex的作用，并给出实例，帮入门学习</p>
+<h1 id="goroutine"><a href="#goroutine" class="headerlink" title="goroutine"></a>goroutine</h1><p>Go 中的并发执行单位，类似于轻量级的线程。<br>Goroutine 的调度由 Go 运行时管理，用户无需手动分配线程。<br>使用 go 关键字启动 Goroutine。<br>Goroutine 是非阻塞的，可以高效地运行成千上万个 Goroutine。</p>
+<h1 id="channels"><a href="#channels" class="headerlink" title="channels"></a>channels</h1><p>通道（Channel）是用于 Goroutine 之间的数据传递。</p>
+<p>通道可用于两个 goroutine 之间通过传递一个指定类型的值来同步运行和通讯。</p>
+<p>使用 make 函数创建一个 channel，使用 &lt;- 操作符发送和接收数据。如果未指定方向，则为双向通道</p>
+<p>通道可以设置缓冲区</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ch := make(chan int, 100)</span><br></pre></td></tr></table></figure>
+
+<p>如果通道不带缓冲，发送方会阻塞直到接收方从通道中接收了值。如果通道带缓冲，发送方则会阻塞直到发送的值被拷贝到缓冲区内；如果缓冲区已满，则意味着需要等待直到某个接收方获取到一个值。接收方在有值可以接收之前会一直阻塞</p>
+<p>Go 通过 range 关键字来实现遍历读取到的数据，类似于与数组或切片。格式如下：</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">v, ok := &lt;-ch</span><br></pre></td></tr></table></figure>
+<p>如果通道接收不到数据后 ok 就为 false，这时通道就可以使用 close() 函数来关闭。</p>
+<h1 id="WaitGroup"><a href="#WaitGroup" class="headerlink" title="WaitGroup"></a>WaitGroup</h1><p>用于等待多个 Goroutine 完成。</p>
+<p>类似Java中的CountDownLatch</p>
+<p>但是允许任务动态增加，且允许多次复用</p>
+<p>在某些场景类似 CyclicBarrier，可以用于等待所有 goroutine 到达后再执行</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;sync&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">worker</span><span class="params">(id <span class="type">int</span>, wg *sync.WaitGroup)</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> wg.Done() <span class="comment">// Goroutine 完成时调用 Done()</span></span><br><span class="line">        fmt.Printf(<span class="string">&quot;Worker %d started\n&quot;</span>, id)</span><br><span class="line">        fmt.Printf(<span class="string">&quot;Worker %d finished\n&quot;</span>, id)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> wg sync.WaitGroup</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">1</span>; i &lt;= <span class="number">3</span>; i++ &#123;</span><br><span class="line">        wg.Add(<span class="number">1</span>) <span class="comment">// 增加计数器</span></span><br><span class="line">        <span class="keyword">go</span> worker(i, &amp;wg)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    wg.Wait() <span class="comment">// 等待所有 Goroutine 完成</span></span><br><span class="line">    fmt.Println(<span class="string">&quot;All workers done&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="例一-生产者消费者"><a href="#例一-生产者消费者" class="headerlink" title="例一 生产者消费者"></a>例一 生产者消费者</h2><figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">int</span>, <span class="number">3</span>) <span class="comment">// 创建带缓冲区的 channel</span></span><br><span class="line">	<span class="keyword">var</span> wg sync.WaitGroup</span><br><span class="line"></span><br><span class="line">	wg.Add(<span class="number">2</span>) <span class="comment">// 消费者等待</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> producer(ch, &amp;wg, <span class="number">100</span>)</span><br><span class="line">	<span class="keyword">go</span> consumer(ch, &amp;wg, <span class="number">500</span>)</span><br><span class="line">	<span class="keyword">go</span> consumer(ch, &amp;wg, <span class="number">800</span>)</span><br><span class="line"></span><br><span class="line">	wg.Wait() <span class="comment">// 等待所有 goroutine 结束</span></span><br><span class="line">	fmt.Println(<span class="string">&quot;✅ 所有任务完成！&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">producer</span><span class="params">(ch <span class="keyword">chan</span>&lt;- <span class="type">int</span>, wg *sync.WaitGroup, interval time.Duration)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> <span class="built_in">close</span>(ch) <span class="comment">// 关闭通道，通知消费者不再有数据</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">1</span>; i &lt;= <span class="number">20</span>; i++ &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;🔵 生产者生成:&quot;</span>, i)</span><br><span class="line">		ch &lt;- i                                 <span class="comment">// 发送数据</span></span><br><span class="line">		time.Sleep(time.Millisecond * interval) <span class="comment">// 模拟生产时间</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费者：从 channel 获取数据并处理</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">consumer</span><span class="params">(ch &lt;-<span class="keyword">chan</span> <span class="type">int</span>, wg *sync.WaitGroup, interval time.Duration)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> wg.Done() <span class="comment">// 任务完成，减少计数</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> num := <span class="keyword">range</span> ch &#123; <span class="comment">// 监听 channel</span></span><br><span class="line">		fmt.Println(<span class="string">&quot;🟢 消费者消费:&quot;</span>, num)</span><br><span class="line">		time.Sleep(time.Millisecond * interval) <span class="comment">// 模拟消费时间</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="select"><a href="#select" class="headerlink" title="select"></a>select</h1><p>select语句的语法：</p>
+<ul>
+<li>每个 case 都必须是一个通道</li>
+<li>所有 channel 表达式都会被求值</li>
+<li>所有被发送的表达式都会被求值</li>
+<li>如果任意某个通道可以进行，它就执行，其他被忽略。</li>
+<li>如果有多个 case 都可以运行，select 会随机公平地选出一个执行，其他不会执行。</li>
+<li>否则：</li>
+<li>如果有 default 子句，则执行该语句。</li>
+<li>如果没有 default 子句，select 将阻塞，直到某个通道可以运行；Go 不会重新对 channel 或值进行求值。</li>
+</ul>
+<h2 id="例一-select-语法"><a href="#例一-select-语法" class="headerlink" title="例一 select 语法"></a>例一 select 语法</h2><figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	c1 := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)</span><br><span class="line">	c2 := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">string</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		time.Sleep(<span class="number">1</span> * time.Second)</span><br><span class="line">		c1 &lt;- <span class="string">&quot;one&quot;</span></span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		time.Sleep(<span class="number">2</span> * time.Second)</span><br><span class="line">		c2 &lt;- <span class="string">&quot;two&quot;</span></span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">2</span>; i++ &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> msg1 := &lt;-c1:</span><br><span class="line">			fmt.Println(<span class="string">&quot;received&quot;</span>, msg1)</span><br><span class="line">		<span class="keyword">case</span> msg2 := &lt;-c2:</span><br><span class="line">			fmt.Println(<span class="string">&quot;received&quot;</span>, msg2)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">received one</span><br><span class="line">received two</span><br></pre></td></tr></table></figure>
+
+<p>若语句改成</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">2</span>; i++ &#123;</span><br><span class="line">    <span class="keyword">select</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> msg1 := &lt;-c1:</span><br><span class="line">        fmt.Println(<span class="string">&quot;received&quot;</span>, msg1)</span><br><span class="line">    <span class="keyword">case</span> msg2 := &lt;-c2:</span><br><span class="line">        fmt.Println(<span class="string">&quot;received&quot;</span>, msg2)</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        fmt.Println(<span class="string">&quot;nothing&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nothing</span><br><span class="line">nothing</span><br></pre></td></tr></table></figure>
+
+<h2 id="例二：超时控制、取消任务"><a href="#例二：超时控制、取消任务" class="headerlink" title="例二：超时控制、取消任务"></a>例二：超时控制、取消任务</h2><p>监听 context.Done()</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/cloudwego/kitex-examples">https://github.com/cloudwego/kitex-examples</a></p>
+<p>修改下面的hello项目<br><code>hello/handler.go</code></p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *HelloImpl)</span></span> Echo(ctx context.Context, req *api.Request) (*api.Response, <span class="type">error</span>) &#123;</span><br><span class="line">	<span class="comment">// 设置超时时间（例如 2 秒）</span></span><br><span class="line">	ctx, cancel := context.WithTimeout(ctx, <span class="number">2</span>*time.Second)</span><br><span class="line">	<span class="keyword">defer</span> cancel() <span class="comment">// 确保在函数返回时释放资源</span></span><br><span class="line"></span><br><span class="line">	resultChan := <span class="built_in">make</span>(<span class="keyword">chan</span> *api.Response, <span class="number">1</span>)</span><br><span class="line">	errChan := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="type">error</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 模拟处理请求的 goroutine</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="comment">// 这里模拟一个可能耗时的任务（例如 3 秒，超时会触发 `ctx.Done()`）</span></span><br><span class="line">		time.Sleep(<span class="number">3</span> * time.Second)</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 任务完成后发送结果</span></span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> resultChan &lt;- &amp;api.Response&#123;Message: <span class="string">&quot;Hello, &quot;</span> + req.Message&#125;:</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> &lt;-ctx.Done(): <span class="comment">// 超时或被取消</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;request timeout: %w&quot;</span>, ctx.Err())</span><br><span class="line">	<span class="keyword">case</span> resp := &lt;-resultChan: <span class="comment">// 正常返回</span></span><br><span class="line">		<span class="keyword">return</span> resp, <span class="literal">nil</span></span><br><span class="line">	<span class="keyword">case</span> err := &lt;-errChan: <span class="comment">// 捕获错误</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>启动main.go(服务端)和client&#x2F;main.go(客户端)</p>
+<p>服务端日志</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">2025/03/06 08:41:39.765088 server.go:79: [Info] KITEX: server listen at addr=[::]:8888</span><br><span class="line">2025/03/06 08:41:47.781960 default_server_handler.go:259: [Error] KITEX: processing request error, remoteService=, remoteAddr=127.0.0.1:62005, error=biz error: request timeout: context deadline exceeded</span><br><span class="line">2025/03/06 08:42:09.936797 default_server_handler.go:259: [Error] KITEX: processing request error, remoteService=, remoteAddr=[::1]:62514, error=invalid payload (first4Bytes=0x47455420, second4Bytes=0x2f204854)</span><br><span class="line">2025/03/06 08:42:10.974621 default_server_handler.go:259: [Error] KITEX: processing request error, remoteService=, remoteAddr=[::1]:62515, error=invalid payload (first4Bytes=0x47455420, second4Bytes=0x2f204854)</span><br><span class="line">2025/03/06 08:42:10.975645 default_server_handler.go:259: [Error] KITEX: processing request error, remoteService=, remoteAddr=[::1]:62516, error=invalid payload (first4Bytes=0x47455420, second4Bytes=0x2f204854)</span><br></pre></td></tr></table></figure>
+<p>客户端日志</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2025/03/06 08:41:47 remote or network error[remote]: biz error: request timeout: context deadline exceeded</span><br></pre></td></tr></table></figure>
+
+<h1 id="Mutex"><a href="#Mutex" class="headerlink" title="Mutex"></a>Mutex</h1><p>sync.Mutex   互斥锁<br>sync.RWMutex 读写锁</p>
+<h2 id="例一"><a href="#例一" class="headerlink" title="例一"></a>例一</h2><figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	count <span class="type">int</span>        <span class="comment">// 共享变量</span></span><br><span class="line">	mutex sync.Mutex <span class="comment">// 定义互斥锁</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 计数器增加</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">increment</span><span class="params">(wg *sync.WaitGroup)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> wg.Done() <span class="comment">// 任务完成，减少计数</span></span><br><span class="line"></span><br><span class="line">	mutex.Lock()   <span class="comment">// 加锁，保证数据安全</span></span><br><span class="line">	count++        <span class="comment">// 临界区</span></span><br><span class="line">	mutex.Unlock() <span class="comment">// 解锁</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> wg sync.WaitGroup</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">100</span>; i++ &#123;</span><br><span class="line">		wg.Add(<span class="number">1</span>)</span><br><span class="line">		<span class="keyword">go</span> increment(&amp;wg) <span class="comment">// 启动多个 goroutine</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	wg.Wait()                    <span class="comment">// 等待所有 goroutine 完成</span></span><br><span class="line">	fmt.Println(<span class="string">&quot;最终计数值:&quot;</span>, count) <span class="comment">// 预期 100</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本文是go并发基础的内容，介绍了golang基本的并发的用法。<br>介绍了goroutine, channels, select, sync.Mutex的作用，并给出了基本的例子<br>可以帮助初学者学习go并发的基本用法</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io">liujinglong</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://jinglong-liu.github.io/2025/03/06/golang-select/">https://jinglong-liu.github.io/2025/03/06/golang-select/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jinglong-liu.github.io" target="_blank">Hexo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/golang/">golang</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2025/02/07/bagu/" title="八股复习1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">八股复习1</div></div></a></div></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liujinglong</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#goroutine"><span class="toc-number">1.</span> <span class="toc-text">goroutine</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#channels"><span class="toc-number">2.</span> <span class="toc-text">channels</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#WaitGroup"><span class="toc-number">3.</span> <span class="toc-text">WaitGroup</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E4%B8%80-%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85"><span class="toc-number">3.1.</span> <span class="toc-text">例一 生产者消费者</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#select"><span class="toc-number">4.</span> <span class="toc-text">select</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E4%B8%80-select-%E8%AF%AD%E6%B3%95"><span class="toc-number">4.1.</span> <span class="toc-text">例一 select 语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E4%BA%8C%EF%BC%9A%E8%B6%85%E6%97%B6%E6%8E%A7%E5%88%B6%E3%80%81%E5%8F%96%E6%B6%88%E4%BB%BB%E5%8A%A1"><span class="toc-number">4.2.</span> <span class="toc-text">例二：超时控制、取消任务</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Mutex"><span class="toc-number">5.</span> <span class="toc-text">Mutex</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E4%B8%80"><span class="toc-number">5.1.</span> <span class="toc-text">例一</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/06/golang-select/" title="golang基础篇（一）：goroutine, channels, select">golang基础篇（一）：goroutine, channels, select</a><time datetime="2025-03-06T00:19:46.000Z" title="发表于 2025-03-06 08:19:46">2025-03-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/07/bagu/" title="八股复习1">八股复习1</a><time datetime="2025-02-07T04:16:26.000Z" title="发表于 2025-02-07 12:16:26">2025-02-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/03/lock-2/" title="Java 锁 （二）AQS">Java 锁 （二）AQS</a><time datetime="2025-02-03T10:29:22.000Z" title="发表于 2025-02-03 18:29:22">2025-02-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/03/lock-1/" title="Java 锁 （一）">Java 锁 （一）</a><time datetime="2025-02-03T09:24:42.000Z" title="发表于 2025-02-03 17:24:42">2025-02-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/04/ba-gu-training-KamaCoder11/" title="ba-gu-training-KamaCoder11">ba-gu-training-KamaCoder11</a><time datetime="2024-12-04T04:25:28.000Z" title="发表于 2024-12-04 12:25:28">2024-12-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By liujinglong</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b2"></script><script src="/js/main.js?v=4.14.0-b2"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = (ele) => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from(ele).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+    
+    codeMermaidEle.forEach(ele => {
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.innerHTML = `<pre class="mermaid-src" hidden>${ele.textContent}</pre>`
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (false) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+  
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const initValine = () => {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: '4JE6J6Fimc9mBF9PTJvsX6P2-gzGzoHsz',
+      appKey: '0F61JyHXoFJLYMGMy6p9aZhN',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: true
+    }, null))
+  }
+
+  const loadValine = async () => {
+    if (typeof Valine === 'function') initValine()
+    else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine@1.5.1/dist/Valine.min.js')
+      initValine()
+    }
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

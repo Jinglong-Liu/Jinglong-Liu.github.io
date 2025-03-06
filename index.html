@@ -169,8 +169,114 @@
   isHome: true,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2024-10-06 17:01:17'
-}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Hexo</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/10/06/juc-jmm/" title="Java 内存模型 (JMM)">Java 内存模型 (JMM)</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-10-06T00:50:17.000Z" title="发表于 2024-10-06 08:50:17">2024-10-06</time></span></div><div class="content">本文简要介绍 java memory models，主要包括Java 内存模型，重排序，happens-before原则，volatile和final等语义，并提供相关练习，供读者复习。希望读者能通过本文，对JMM和相关问题有一个基本的，初步的了解。要想更进一步地理解，可以多写代码，并查看参考资料中列出的文章。
+  postUpdate: '2025-03-06 14:15:57'
+}</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Hexo</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/03/06/golang-select/" title="golang基础篇（一）：goroutine, channels, select">golang基础篇（一）：goroutine, channels, select</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-03-06T00:19:46.000Z" title="发表于 2025-03-06 08:19:46">2025-03-06</time></span></div><div class="content">本篇学习golang语言基础：并发，分析goroutine, channels, select, sync.Mutex的作用，并给出实例，帮入门学习
+goroutineGo 中的并发执行单位，类似于轻量级的线程。Goroutine 的调度由 Go 运行时管理，用户无需手动分配线程。使用 go 关键字启动 Goroutine。Goroutine 是非阻塞的，可以高效地运行成千上万个 Goroutine。
+channels通道（Channel）是用于 Goroutine 之间的数据传递。
+通道可用于两个 goroutine 之间通过传递一个指定类型的值来同步运行和通讯。
+使用 make 函数创建一个 channel，使用 &lt;- 操作符发送和接收数据。如果未指定方向，则为双向通道
+通道可以设置缓冲区
+1ch := make(chan int, 100)
+
+如果通道不带缓冲，发送方会阻塞直到接收方从通道中接收了值。如果通道带缓冲，发送方则会阻塞直到发送的值被拷贝到缓冲区内；如果缓冲区已满，则意味着需要等待直到某个接收方获取到一个值。接收方在有值可以接收之前会一直阻塞
+Go 通过 rang ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/02/07/bagu/" title="八股复习1">八股复习1</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-02-07T04:16:26.000Z" title="发表于 2025-02-07 12:16:26">2025-02-07</time></span></div><div class="content">Redisredis 客户端jedis: 简单，线程不安全
+适合低并发，小型Java项目
+lettuce: 基于Netty的异步响应式编程
+适合高并发，响应式应用
+redission: 提供分布式对象和锁，支持同步，异步，响应式API；
+适合需要分布式数据结构或分布式锁的项目
+redis 集群
+主从
+
+写请求全部交给主库，读请求交给从库，从库定期同步主库数据
+
+哨兵
+
+主从模式的技术上，添加哨兵结点，哨兵结点利用心跳检测机制检测系统。如果主库宕机，哨兵自动选举一个从库升级为主库
+
+分片
+
+多个主从节点，移除哨兵，多个主节点形策P2P网络，互相心跳检测健康。
+插槽有16384个节点，每个主节点分到一些槽位。处理数据时，hash(key)对槽的数量取模，映射到槽位上，交给对应主节点处理。
+redis 主从同步分为全量同步和增量同步
+redis的数据集有一个id和偏移量offset从库向主库提出同步请求，发送从库的id和offset
+
+如果主库的id !&#x3D; 从库的id，则触发全量同步：
+
+主库开启一个线程，将数据生成一个RDB，并发送给从库
+在生成RDB同时，主库仍然在更新。将这部 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/02/03/lock-2/" title="Java 锁 （二）AQS">Java 锁 （二）AQS</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-02-03T10:29:22.000Z" title="发表于 2025-02-03 18:29:22">2025-02-03</time></span></div><div class="content">Java 锁 （一）概述
+本系列内容介绍Java锁
+这是本系列的第二篇文章，主要简要介绍AQS
+AbstractQueuedSynchronizer
+实现CLH队列CLH队列是一个基于双向链表的队列
+队列的结点Node:
+123456// 线程volatile Thread thread;volatile Node prev;volatile Node next;// 一个字段，表示该线程的状态（比如是否正在等待、是否被取消等）。通过该字段，可以有效控制线程的阻塞与唤醒。volatile int waitStatus;
+
+其中waitStatus可能的取值
+12345678910/** waitStatus value to indicate thread has cancelled */static final int CANCELLED =  1;/** waitStatus value to indicate successor&#x27;s thread needs unparking */static final int SIGNAL    = -1;/** waitStat ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/02/03/lock-1/" title="Java 锁 （一）">Java 锁 （一）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-02-03T09:24:42.000Z" title="发表于 2025-02-03 17:24:42">2025-02-03</time></span></div><div class="content">Java 锁 （一）概述
+本系列内容介绍Java锁
+这是本系列的第一篇文章，主要简要介绍，Java中有哪些锁
+乐观锁与悲观锁：是否锁住资源悲观锁认为自己在使用数据的时候一定有别的线程来修改数据，因此在获取数据的时候会先加锁，确保数据不会被别的线程修改。适合写多读少的场景。
+而乐观锁认为自己在使用数据时不会有别的线程修改数据，所以不会添加锁，只是在更新数据的时候去判断之前有没有别的线程更新了这个数据。适合读多写少的场景。
+CAS123456789101112131415public class AtomicInteger extends Number implements java.io.Serializable &#123;    public final int incrementAndGet() &#123;        return unsafe.getAndAddInt(this, valueOffset, 1) + 1;    &#125;&#125;public final class Unsafe &#123;    public final int getAndAdd ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/12/04/ba-gu-training-KamaCoder11/" title="ba-gu-training-KamaCoder11">ba-gu-training-KamaCoder11</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-12-04T04:25:28.000Z" title="发表于 2024-12-04 12:25:28">2024-12-04</time></span></div><div class="content">引言本文记录八股文的学习卡码网KamaCoder 八股文11期(2024.12.4-1.14)https://kamacoder.com/training-camp/29
+本文将记录所有布置的任务，每天2题左右
+回答有参考答案，但是会加自己的理解
+目标岗位是Java后端，不同岗位的答题方向和重点不一定完全一致，仅供参考。
+每日任务12.4 ~ 12.1012.4
+1、介绍一下TCP&#x2F;IP模型和OSI模型的区别
+
+OSI是国际标准化组织定制的一个模型，TCP&#x2F;IP是实际网络通信使用的模型
+从层次上来看，TCP&#x2F;IP协议将OSI的应用层，表示层，会话层都看作是应用层处理。将数据链路层和物理层合并为一层（数据链路层）而传输层和网络层，也就是TCP和IP所在的层非常重要，仍然独立开来。相比OSI的七层模型，TCP&#x2F;IP的四层更为简单。
+&#x2F;&#x2F; 感觉意义不大
+
+2、从输入 URL 到页面展示到底发生了什么？
+
+
+首先，浏览器解析URL
+
+浏览器有缓存页面，直接返回，不然
+
+需要根据域名获得网站：需要DNS解析出IP地址，顺序为：本地浏览器 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/11/25/adb-lab-buffer/" title="我在科软学真东西之-高级数据库技术-lab-buffer">我在科软学真东西之-高级数据库技术-lab-buffer</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-11-25T06:09:11.000Z" title="发表于 2024-11-25 14:09:11">2024-11-25</time></span></div><div class="content">lab2 Storage and Buffer Manager
+文档翻译与实验要求本项目实现一个简单的存储和缓冲区管理器，涵盖以下内容：
+
+缓冲区与帧的大小、结构
+页面格式与存储结构
+文件格式
+缓冲和哈希技术
+磁盘空间与缓冲区模块的接口函数
+
+具体技术基于课堂内容，选用与缓冲和存储管理器相关的方法。
+缓冲区与帧 (Buffer and Frames)
+缓冲区与帧大小
+
+缓冲区是主存中供 CPU 访问的区域，由帧数组组成。页面被请求时会加载到缓冲区中。帧大小等于页面大小，避免外部碎片。本项目中缓冲区大小默认为 1024。
+
+缓冲区与帧存储结构
+
+缓冲区由逻辑分区组成，称为帧（Frame）。定义帧的结构：
+123456#define FRAMESIZE 4096struct bFrame &#123;    char field[FRAMESIZE];&#125;;#define DEFBUFSIZE 1024bFrame buf[DEFBUFSIZE];
+页面与文件格式 (Page and File Format)
+页面格式
+
+页面仅需关注 page_id 和 page_size，不涉及 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/11/25/Seed-Web-Security-Labs-XSS/" title="信安实践-Seed labs XSS">信安实践-Seed labs XSS</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-11-25T04:41:26.000Z" title="发表于 2024-11-25 12:41:26">2024-11-25</time></span></div><div class="content">实验网站：https://seedsecuritylabs.org/Labs_20.04/Web/
+参考博客https://blog.ch3nyang.top/post/seedlab_XSS/
+Cross-Site Scripting (XSS) Attack Lab(Web Application: Elgg)
+基础知识：XSS 攻击简要说明简介https://zhuanlan.zhihu.com/p/26177815
+XSS：跨站脚本攻击(Cross Site Scripting)
+恶意攻击者往Web页面里插入恶意Script代码，当用户浏览该页之时，嵌入其中Web里面的Script代码会被执行，从而达到恶意攻击用户的目的
+12345&lt;script&gt;alert(“hey!you are attacked”)&lt;/script&gt;http://192.168.1.102/xss/example4.php?name=&lt;imgsrc=&#x27;w.123&#x27; onerror=&#x27;alert(&quot;hey!&quot;)&#x27;&gt ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/10/10/project-interview-bilibili/" title="项目面试准备：仿写Bilibili">项目面试准备：仿写Bilibili</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-10-10T01:07:48.000Z" title="发表于 2024-10-10 09:07:48">2024-10-10</time></span></div><div class="content">项目面试准备：仿写Bilibili项目 可能的面试题
+ES
+你的视频关键字搜索功能是如何实现的
+
+使用了elastic-search。MySQL也提供模糊匹配，但如果需要在一个字段中，进行关键字搜索，只能通过模糊匹配。模糊匹配，星号如果加在左边，是走不了索引的，所以效率会很低。因此我使用了elastic-search，使用倒排索引，可以更快速地进行关键字的查询
+
+es 分页是怎么实现的&#x2F;分页慢问题
+
+es 提供了分页的接口，但如果页数值比较大，在分布式存储的情况下，可能会很慢。
+因为，假如你每页是 10 条数据，你现在要查询第 100 页，也就是第990-999条的数据。实际上是会把每个 shard 上存储的前 1000 条数据都查到一个协调节点上，如果你有个 5 个 shard，那么就有 5000 条数据，接着协调节点对这 5000 条数据进行一些合并、处理，再获取到最终第 100 页的 10 条数据。所以会很慢。
+这里我特意看了下包括B站，淘宝等网站，现在更多采用下滑展示更多推荐内容的方式，这也更适用于移动设备。
+es提供scroll api
+scroll 会一次性给你生 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/10/06/juc-jmm/" title="Java 内存模型 (JMM)">Java 内存模型 (JMM)</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-10-06T00:50:17.000Z" title="发表于 2024-10-06 08:50:17">2024-10-06</time></span></div><div class="content">本文简要介绍 java memory models，主要包括Java 内存模型，重排序，happens-before原则，volatile和final等语义，并提供相关练习，供读者复习。希望读者能通过本文，对JMM和相关问题有一个基本的，初步的了解。要想更进一步地理解，可以多写代码，并查看参考资料中列出的文章。
 问题引入有以下代码，执行new Record().run()后，试给出可能的Record &#123;x, y&#125;可能取值：
 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152package com.github.ljl.learning.juc.case1;import java.util.Objects;/** * @program: spring-learning * @description: * @author: ljl * @create: 2024-09-28 08:00 **/public class Record  ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/09/10/build-open-jdk/" title="build-open-jdk">build-open-jdk</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-09-10T04:38:55.000Z" title="发表于 2024-09-10 12:38:55">2024-09-10</time></span></div><div class="content">引言JVM是面试常考内容。之前对于JVM的理解，局限于参考书籍和博文，这些内容往往只是对于JVM的内容，进行概念上的说明。容易遗忘。为进一步加深对JVM的理解，更好地应付面试，需要结合源码以及调试进行学习。笔者记录一下搭建openjdk源码调试的过程，方便读者进行源码的调试学习
 环境准备版本适配即可，此处仅列出笔者使用的版本，不必一致
@@ -189,49 +295,7 @@ openjdk: 编译版本为n的openjdk，需要一个版本至少为n-1的boot jdk�
 openjdk和boot jdk下载：
 https://jdk.java.net/archive/
 选择对应的linux版本下载boot-jdk以及jdk-source并解压注意boot选择 jdk-&#123;version&#125;_linux-x64_bin.tar.gz
-也可以github 下载对应 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/09/08/redis-listpack/" title="listpack, ziplist, quicklist">listpack, ziplist, quicklist</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-09-08T00:05:26.000Z" title="发表于 2024-09-08 08:05:26">2024-09-08</time></span></div><div class="content">引言众所周知，旧版本的redis曾经使用ziplist这一数据结构，作为list等类型的底层实现，但redis7.0之后全部改成了listpack。此外，list结构还会用到quicklist。下面学习这三种数据结构的实现，分析使用这些数据结构，以及数据结构变化的原因。下面的源码以redis7.4.0为准
-数据结构验证我们容易验证redis使用哪些底层的数据结构
-验证
-123456789101112127.0.0.1:6379&gt; LPUSH mylist &quot;value123456&quot;(integer) 1127.0.0.1:6379&gt; LPUSH mylist &quot;value2&quot;(integer) 2127.0.0.1:6379&gt; LPUSH mylist &quot;value3&quot;(integer) 3127.0.0.1:6379&gt; OBJECT ENCODING mylist&quot;listpack&quot;127.0.0.1:6379&gt; HSET myhash field1 &quot;value1 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/09/08/skiplist/" title="zset 与 skiplist">zset 与 skiplist</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-09-08T00:05:26.000Z" title="发表于 2024-09-08 08:05:26">2024-09-08</time></span></div><div class="content">引言跳表(SkipList) 是一种数据结构。因为redis的zset(有序集合) 使用跳表作为底层数据结构，因此也是面试常考项。为此，本文结合redis源码以及leetcode相关题目，来讲解一下跳表的数据结构，并和B+树，红黑树做一个简要的对比。
-redis 调试环境搭建下面用vscode + ssh 搭建一个redis源码调试环境，方便学习。不感兴趣的读者可以跳过本章节。
-下载源码在 https://github.com/redis/redis/releases 选择对应的版本，下载对应的tar.gz
-放到虚拟机对应目录
-下面以redis-7.4.0为例
-编译安装gcc, gdb
-在redis-7.4.0 目录下执行
-1make
-
-vscode 调试环境配置这边采用 vscode + ssh的方式，搭建调试环境。读者也可以使用自己喜欢的方式今天源码的阅读与调试。
-ssh安装插件 Remote - SSH, 连接虚拟机
-配置launch 和 tasks在setting.json(一般位于C:\Users\&#123;user&#125;\AppData\Roaming\Code\U ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/08/20/spring-transaction-propagation/" title="spring 事务传播机制">spring 事务传播机制</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-08-20T12:40:49.000Z" title="发表于 2024-08-20 20:40:49">2024-08-20</time></span></div><div class="content">Spring 事务传播机制 应用与实现
-@Transactional 是事务相关的非常重要的注解。
-众所周知，@Transactional 有很多的传播方式(propagation)
-代码示例测试用例
-github
-Transactional 与 Propagation 概览本文主要讲解@Transactional注解的propagation属性。也就是事务的传播机制。
-由源码可知，默认情况下，propagation值为 Propagation.REQUIRED
-1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950package org.springframework.transaction.annotation;// 省略import和官方注释@Target(&#123;ElementType.TYPE, ElementType.METHOD&#125;)@Retention(RetentionPolicy.RUNTIME)@Inherited@Docum ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/08/16/spring-aop-dynamic-proxy/" title="spring-aop 与 动态代理">spring-aop 与 动态代理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-08-16T06:43:46.000Z" title="发表于 2024-08-16 14:43:46">2024-08-16</time></span></div><div class="content">AOP 与 动态代理代码示例github
-版本说明SpringBoot: 2.7.18
-Junit:5
-问题引入:bean内部事务方法调用Spring相信大家都十分熟悉。开发中也常常使用@Trancsation开启事务等。
-在学习过程中，遇到一种说法，事务生效需要通过代理实现。是什么意思呢
-具体来说，现在需要在UserService的某方法(func2)内部，执行UserService的一个事务方法(func1)，事务是否生效呢，怎么写让事务生效呢。
-观察以下代码，说明事务是否能开启
-12345678910111213141516171819202122232425@Servicepublic class UserServiceImpl implements UserService &#123;    @Transactional    @Override    public void func1() &#123;        // repo/mapper function    &#125;    @Override    public void func2() &#123;    ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/04/25/hello-world/" title="Hello World">Hello World</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-04-25T05:19:23.895Z" title="发表于 2024-04-25 13:19:23">2024-04-25</time></span></div><div class="content">Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.
-Quick StartCreate a new post1$ hexo new &quot;My New Post&quot;
-
-More info: Writing
-Run server1$ hexo server
-
-More info: Server
-Generate static files1$ hexo generate
-
-More info: Generating
-Deploy to remote sites1$ hexo deploy
-
-Hide1cnpm install hexo-hide-posts --save
-
-1234567891011#_config.yml# hexo-hide ...</div></div></div><nav id="pagination"><div class="pagination"><span class="page-number current">1</span></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liujinglong</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/10/06/juc-jmm/" title="Java 内存模型 (JMM)">Java 内存模型 (JMM)</a><time datetime="2024-10-06T00:50:17.000Z" title="发表于 2024-10-06 08:50:17">2024-10-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/10/build-open-jdk/" title="build-open-jdk">build-open-jdk</a><time datetime="2024-09-10T04:38:55.000Z" title="发表于 2024-09-10 12:38:55">2024-09-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/08/redis-listpack/" title="listpack, ziplist, quicklist">listpack, ziplist, quicklist</a><time datetime="2024-09-08T00:05:26.000Z" title="发表于 2024-09-08 08:05:26">2024-09-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/08/skiplist/" title="zset 与 skiplist">zset 与 skiplist</a><time datetime="2024-09-08T00:05:26.000Z" title="发表于 2024-09-08 08:05:26">2024-09-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/08/20/spring-transaction-propagation/" title="spring 事务传播机制">spring 事务传播机制</a><time datetime="2024-08-20T12:40:49.000Z" title="发表于 2024-08-20 20:40:49">2024-08-20</time></div></div></div></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/redis/" style="font-size: 1.5em; color: #99a9bf">redis</a> <a href="/tags/java-mysql/" style="font-size: 1.1em; color: #999">java, mysql</a> <a href="/tags/juc/" style="font-size: 1.1em; color: #999">juc</a> <a href="/tags/java/" style="font-size: 1.5em; color: #99a9bf">java</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/10/"><span class="card-archive-list-date">十月 2024</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/09/"><span class="card-archive-list-date">九月 2024</span><span class="card-archive-list-count">3</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/08/"><span class="card-archive-list-date">八月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/04/"><span class="card-archive-list-date">四月 2024</span><span class="card-archive-list-count">1</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">7</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2024-10-06T09:01:17.198Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By liujinglong</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b2"></script><script src="/js/main.js?v=4.14.0-b2"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+也可以github 下载对应 ...</div></div></div><nav id="pagination"><div class="pagination"><span class="page-number current">1</span><a class="page-number" href="/page/2/#content-inner">2</a><a class="extend next" rel="next" href="/page/2/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liujinglong</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/06/golang-select/" title="golang基础篇（一）：goroutine, channels, select">golang基础篇（一）：goroutine, channels, select</a><time datetime="2025-03-06T00:19:46.000Z" title="发表于 2025-03-06 08:19:46">2025-03-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/07/bagu/" title="八股复习1">八股复习1</a><time datetime="2025-02-07T04:16:26.000Z" title="发表于 2025-02-07 12:16:26">2025-02-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/03/lock-2/" title="Java 锁 （二）AQS">Java 锁 （二）AQS</a><time datetime="2025-02-03T10:29:22.000Z" title="发表于 2025-02-03 18:29:22">2025-02-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/03/lock-1/" title="Java 锁 （一）">Java 锁 （一）</a><time datetime="2025-02-03T09:24:42.000Z" title="发表于 2025-02-03 17:24:42">2025-02-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/04/ba-gu-training-KamaCoder11/" title="ba-gu-training-KamaCoder11">ba-gu-training-KamaCoder11</a><time datetime="2024-12-04T04:25:28.000Z" title="发表于 2024-12-04 12:25:28">2024-12-04</time></div></div></div></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/redis/" style="font-size: 1.3em; color: #99a1ac">redis</a> <a href="/tags/java/" style="font-size: 1.5em; color: #99a9bf">java</a> <a href="/tags/java-mysql/" style="font-size: 1.1em; color: #999">java, mysql</a> <a href="/tags/golang/" style="font-size: 1.1em; color: #999">golang</a> <a href="/tags/juc/" style="font-size: 1.1em; color: #999">juc</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/03/"><span class="card-archive-list-date">三月 2025</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/02/"><span class="card-archive-list-date">二月 2025</span><span class="card-archive-list-count">3</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/12/"><span class="card-archive-list-date">十二月 2024</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/11/"><span class="card-archive-list-date">十一月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/10/"><span class="card-archive-list-date">十月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/09/"><span class="card-archive-list-date">九月 2024</span><span class="card-archive-list-count">3</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/08/"><span class="card-archive-list-date">八月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/04/"><span class="card-archive-list-date">四月 2024</span><span class="card-archive-list-count">1</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">15</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-03-06T06:15:57.101Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By liujinglong</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.14.0-b2"></script><script src="/js/main.js?v=4.14.0-b2"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.35/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
   const runMermaid = (ele) => {
     window.loadMermaid = true
     const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
